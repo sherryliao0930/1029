@@ -329,13 +329,14 @@ const SUBJECTS = [
   ]},
   { name: '數學', match: /數|線對稱/, groups: [
     ['月考成績', /月考|期中|期末|綜合成績/],
+    ['隨堂測驗', /隨堂/],
     ['習作', /數習|習作/],
     ['評量卷', /./],
   ]},
 ];
 const AVG_LABEL = /^(班級)?平均$/;
 const MISSING_WORDS = /未做|未繳|未交|缺交|補交/;
-const ABSENT_WORDS = /缺|請假|公假|病假|事假/;
+const ABSENT_WORDS = /缺|請假|公假|病假|事假|未參與/;
 
 // ---------- DOM ----------
 const $ = id => document.getElementById(id);
@@ -400,17 +401,26 @@ function classify(name) {
 
 // 把試算表的簡寫整理成家長看得懂的名稱：「1124國7朗讀1」→ 日期 11/24、「第7課 朗讀（一）」
 const CN_NUM = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+// 日期可能寫在開頭「1028國…」、科目後「數學1029隨堂測驗」或結尾「隨堂測驗909」
+const DATE_AT = [/^(?:國語|數學)?(\d{2})(\d{2})(?=\D)/, /(?<=\D)(\d{1,2}?)(\d{2})$/];
 function prettyName(raw, subject) {
-  let s = raw.trim(), date = '';
-  const d = s.match(/^(\d{2})(\d{2})(?=\D)/);
-  if (d && +d[1] >= 1 && +d[1] <= 12 && +d[2] >= 1 && +d[2] <= 31) {
-    date = `${+d[1]}/${+d[2]}`;
-    s = s.slice(4);
+  let s = raw.trim(), date = '', dateKey = null;
+  for (const re of DATE_AT) {
+    const d = s.match(re);
+    if (d && +d[1] >= 1 && +d[1] <= 12 && +d[2] >= 1 && +d[2] <= 31) {
+      date = `${+d[1]}/${+d[2]}`;
+      // 學年從 8 月開始，1–7 月排在 12 月之後
+      dateKey = (+d[1] >= 8 ? +d[1] : +d[1] + 12) * 100 + +d[2];
+      s = s.replace(d[1] + d[2], '');
+      break;
+    }
   }
   const unit = subject === '數學' ? '單元' : '課';
   s = s.replace(/[（(]月考\+平時[)）]/, '').replace(/月考月考/, '月考')
        .replace(/國語|數學/g, '').replace(/(^|[^內])容深究/, '$1內容深究')
-       .replace(/^[國數](?=[\d習卷])/, '')
+       .replace(/^[國數](?=[\d習卷一二三四五六七八九十（(])/, '')
+       .replace(/^[（(]?([一二三四五六七八九十]+)[)）]?/, (m, n) => CN_NUM.includes(n) ? String(CN_NUM.indexOf(n)) : m)
+       .replace(/^(\d+)單元/, '$1')
        .replace(/朗讀(\d+)$/, (_, n) => `朗讀（${CN_NUM[+n] || n}）`);
 
   let m;
@@ -422,7 +432,7 @@ function prettyName(raw, subject) {
     const rest = m[2] === '卷' ? '評量卷' : m[2];
     s = `第${lessons}${unit}${rest ? ' ' + rest : ''}`;
   }
-  return { title: s.trim() || raw, date };
+  return { title: s.trim() || raw, date, dateKey };
 }
 
 // 從標題列找出成績項目；標題叫「班級平均」的舊欄位，配給左邊最近的項目
@@ -452,6 +462,12 @@ function studentRecords(sheet) {
     const avg = fromRow ?? inCell ?? (it.avgCol !== null ? num(row[it.avgCol]) : null) ?? sheet.autoAvg[it.col] ?? null;
     return { ...it.cls, ...prettyName(it.name, it.cls.subject), name: it.name, score, value: num(score), avg, status: scoreStatus(score) };
   });
+}
+
+// 有日期的由新到舊排在前面，沒有日期的照試算表順序接在後面
+function byDate(a, b) {
+  if (a.dateKey === null || b.dateKey === null) return (a.dateKey === null) - (b.dateKey === null);
+  return b.dateKey - a.dateKey;
 }
 
 // ---------- 畫面 ----------
@@ -573,7 +589,7 @@ async function handleQuery(e) {
   $('student-seat').textContent = res.student.seat;
   $('student-name').textContent = res.student.name;
   // 所有啟用中的工作表合併成一份
-  currentRecords = res.sheets.flatMap(studentRecords);
+  currentRecords = res.sheets.flatMap(studentRecords).sort(byDate);
   querySection.classList.add('hidden');
   resultSection.classList.remove('hidden');
   renderResult();
