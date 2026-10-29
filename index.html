@@ -432,7 +432,11 @@ function prettyName(raw, subject) {
     const rest = m[2] === '卷' ? '評量卷' : m[2];
     s = `第${lessons}${unit}${rest ? ' ' + rest : ''}`;
   }
-  return { title: s.trim() || raw, date, dateKey };
+  const title = s.trim() || raw;
+  // 沒有日期的項目用課次排序：「第5單元 習作」→ 5、「朗讀（三）」→ 3
+  const n = title.match(/\d+/) || title.match(/（([一二三四五六七八九十])）/);
+  const lessonKey = !n ? null : /\d/.test(n[0]) ? +n[0] : CN_NUM.indexOf(n[1]);
+  return { title, date, dateKey, lessonKey };
 }
 
 // 從標題列找出成績項目；標題叫「班級平均」的舊欄位，配給左邊最近的項目
@@ -464,10 +468,14 @@ function studentRecords(sheet) {
   });
 }
 
-// 有日期的由新到舊排在前面，沒有日期的照試算表順序接在後面
+// 有日期的由新到舊排在前面；沒有日期的依課次由小到大，連課次都沒有的照試算表順序接在最後
 function byDate(a, b) {
-  if (a.dateKey === null || b.dateKey === null) return (a.dateKey === null) - (b.dateKey === null);
-  return b.dateKey - a.dateKey;
+  if (a.dateKey !== null || b.dateKey !== null) {
+    if (a.dateKey === null || b.dateKey === null) return (a.dateKey === null) - (b.dateKey === null);
+    return b.dateKey - a.dateKey;
+  }
+  if (a.lessonKey === null || b.lessonKey === null) return (a.lessonKey === null) - (b.lessonKey === null);
+  return a.lessonKey - b.lessonKey;
 }
 
 // ---------- 畫面 ----------
