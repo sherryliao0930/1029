@@ -589,8 +589,7 @@ async function handleQuery(e) {
   setQueryState(true, '查詢中…');
   let res;
   try {
-    // code 是給舊版 Apps Script 用的後 4 碼；重新部署新版後只會比對 id
-    res = await callApi({ seat, id, code: id.slice(-4) });
+    res = await callApi({ seat, id });
   } catch (error) {
     console.error(error);
     res = { ok: false, error: '連線失敗，請稍後再試。' };
