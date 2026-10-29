@@ -71,19 +71,24 @@
 
   /* 成績缺漏：國語、數學各一張小卡 */
   .missing{margin:16px 0 0;border:1px solid var(--red-line);border-radius:3px;background:var(--card);overflow:hidden}
-  /* 缺漏區：全部同一字級，只用顏色區分；每列「科目｜項目＋日期｜狀態」對齊 */
+  /* 缺漏區：國語、數學左右兩欄（手機也是），全部同一字級，只用顏色區分 */
   .missing-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--red);color:var(--paper);font-size:15px}
   .missing-head b{font-family:var(--serif);font-weight:700;letter-spacing:.2em}
   .missing-head span{color:var(--red-pale);white-space:nowrap}
-  .missing-list{margin:0;padding:0;list-style:none}
-  .missing-list li{display:grid;grid-template-columns:3.2em 1fr auto;align-items:baseline;gap:12px;padding:10px 16px;font-size:15px;line-height:1.5}
-  .missing-list li+li{border-top:1px solid var(--line-2)}
-  .missing-list .m-subj{color:var(--red);letter-spacing:.1em}
-  .missing-list li.cont .m-subj{visibility:hidden}
-  .missing-list li.first:not(:first-child){border-top-color:var(--line)}
-  .missing-list .m-name{min-width:0;color:var(--ink)}
-  .missing-list .m-name em{font-style:normal;color:var(--ink-3);margin-left:8px;white-space:nowrap}
-  .missing-list .m-st{color:var(--red);white-space:nowrap}
+  .missing-cols{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-items:start}
+  .missing-col+.missing-col{border-left:1px solid var(--line-2)}
+  .missing-col h4{margin:0;padding:9px 14px;font-size:15px;font-weight:400;color:var(--red);letter-spacing:.15em;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+  .missing-col h4 small{font-size:15px;color:var(--ink-3);letter-spacing:0}
+  .missing-col ul{margin:0;padding:0;list-style:none}
+  .missing-col li{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 14px;font-size:15px;line-height:1.45}
+  .missing-col li+li{border-top:1px solid var(--line-2)}
+  .missing-col li span{min-width:0;color:var(--ink)}
+  .missing-col li em{font-style:normal;color:var(--ink-3);margin-left:6px;white-space:nowrap}
+  .missing-col li i{font-style:normal;color:var(--red);white-space:nowrap}
+  @media (max-width:420px){
+    .missing-col h4,.missing-col li{padding-left:10px;padding-right:10px;font-size:14px}
+    .missing-col h4 small{font-size:14px}
+  }
 
   /* 國數切換：印章紅的深淺 */
   .subjects{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:20px;padding:4px;background:var(--red-soft);border:1px solid var(--red-line);border-radius:3px}
@@ -504,11 +509,10 @@ function renderResult() {
     const cols = SUBJECTS.map(s => [s.name, missing.filter(t => t.subject === s.name)]).filter(([, l]) => l.length);
     missingBox.innerHTML = `<div class="missing">
       <div class="missing-head"><b>成績缺漏</b><span>共 ${missing.length} 項</span></div>
-      <ul class="missing-list">${cols.flatMap(([name, list]) => list.map((t, i) => `<li class="${i ? 'cont' : 'first'}">
-        <span class="m-subj">${name}</span>
-        <span class="m-name">${escapeHTML(t.title)}${t.date ? `<em>${t.date}</em>` : ''}</span>
-        <span class="m-st">${escapeHTML(t.score)}</span>
-      </li>`)).join('')}</ul></div>`;
+      <div class="missing-cols">${cols.map(([name, list]) => `<div class="missing-col">
+        <h4>${name}<small>${list.length} 項</small></h4>
+        <ul>${list.map(t => `<li><span>${escapeHTML(t.title)}${t.date ? `<em>${t.date}</em>` : ''}</span><i>${escapeHTML(t.score)}</i></li>`).join('')}</ul>
+      </div>`).join('')}</div></div>`;
   }
 
   const subjects = SUBJECTS.map(s => s.name).filter(n => records.some(r => r.subject === n));
