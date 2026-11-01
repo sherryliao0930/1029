@@ -146,6 +146,7 @@
   .g-no{font-family:var(--serif);font-weight:900;font-size:18px;color:var(--red);text-align:center;line-height:1}
   .g-name{font-family:var(--serif);font-weight:700;font-size:17px;letter-spacing:.1em;line-height:1.3;white-space:nowrap;transition:color .15s}
   .g-name small{display:block;font-family:var(--sans);font-weight:400;font-size:11px;color:var(--ink-3);letter-spacing:.05em;margin-top:2px}
+  .g-pct{margin-left:6px;font-family:var(--sans);font-weight:400;font-size:13px;letter-spacing:0;color:var(--ink-3)}
   .g-miss{display:inline-block;vertical-align:3px;margin-left:8px;padding:0 5px;border:1px solid var(--red);border-radius:2px;font-family:var(--sans);font-weight:500;font-size:11px;line-height:1.5;letter-spacing:.05em;color:var(--red)}
   .g-num{display:flex;justify-content:space-between;align-items:baseline;white-space:nowrap}
   .g-num span{font-size:11px;color:var(--red);letter-spacing:.1em}
@@ -661,13 +662,14 @@ function fitRadar() {
 function renderGroup(no, name, list) {
   const { me, cls } = groupPair(list);
   const miss = list.filter(r => r.status === 'missing').length;
+  const pct = DAILY_WEIGHTS[currentSubject]?.[name];
   const stat = cls !== null
     ? `<span class="g-num"><span>個人</span><b>${me !== null ? fmt(me) : '—'}</b></span><span class="g-num cls"><span>班級</span><b>${fmt(cls)}</b></span>`
     : '<span></span><span></span>';
   return `<details class="grp">
     <summary>
       <span class="g-no">${no}</span>
-      <span class="g-name">${escapeHTML(name)}${miss ? `<span class="g-miss">缺漏 ${miss}</span>` : ''}<small>${list.length} 項</small></span>
+      <span class="g-name">${escapeHTML(name)}${pct ? `<span class="g-pct">${pct}%</span>` : ''}${miss ? `<span class="g-miss">缺漏 ${miss}</span>` : ''}<small>${list.length} 項</small></span>
       ${stat}<i class="chev"></i>
     </summary>
     <div class="sheet">
