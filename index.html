@@ -625,7 +625,7 @@ function renderRadar(subject, mine) {
   }).join('');
 
   return `<div class="radar">
-    <div class="ov-cap">能力分布<small>平時成績</small></div>
+    <div class="ov-cap">學習力雷達</div>
     <svg viewBox="-175 -150 350 316" role="img" aria-label="${subject}能力雷達圖">${rings}${spokes}${ticks}${cls}${me}${labels}</svg>
     <div class="rd-legend"><span><i class="sw-me"></i>個人</span>${cls ? '<span><i class="sw-cls"></i>班級平均</span>' : ''}</div>
     ${subject === '數學' && axes.some(a => a.label === '穩定度') ? '<div class="rd-note">穩定度：各次成績起伏越小，分數越高</div>' : ''}
