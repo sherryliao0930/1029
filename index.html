@@ -116,17 +116,17 @@
   .ov-pair>div+div{border-left:1px dashed var(--line)}
   /* 能力雷達：孩子是紅色實心，班級平均只是一條淡灰虛線當參考 */
   .radar{margin:30px 0 22px;padding:14px 12px 14px;text-align:center;background:var(--card);border:1px solid var(--line-2);border-radius:3px}
-  .radar .ov-cap{margin:0 6px 8px}
-  .radar svg{display:block;width:100%;max-width:380px;height:auto;margin:0 auto;overflow:visible}
+  .radar .ov-cap{margin:0 6px 10px;padding-bottom:8px;font-size:18px;letter-spacing:.25em}
+  .radar svg{display:block;width:100%;max-width:400px;height:auto;margin:0 auto}
   .rd-ring{fill:none;stroke:var(--line-2);stroke-width:1}
   .rd-ring.out{stroke:var(--line)}
   .rd-axis{stroke:var(--line-2);stroke-width:1}
-  .rd-tick{font-size:10px;fill:var(--ink-3)}
+  .rd-tick{font-size:11px;fill:var(--ink-3)}
   .rd-cls{fill:none;stroke:var(--ink-3);stroke-width:1.5;stroke-dasharray:4 4}
   .rd-me{fill:rgba(166,27,34,.15);stroke:var(--red);stroke-width:2;stroke-linejoin:round}
   .rd-dot{fill:var(--red)}
-  .rd-lab{font-size:14px;fill:var(--ink)}
-  .rd-val{font-family:var(--serif);font-weight:700;font-size:15px;fill:var(--red)}
+  .rd-lab{font-size:16px;fill:var(--ink)}
+  .rd-val{font-family:var(--serif);font-weight:700;font-size:17px;fill:var(--red)}
   .rd-legend{display:flex;justify-content:center;gap:20px;font-size:13px;color:var(--ink-2);margin-top:6px}
   .rd-legend i{display:inline-block;width:18px;height:10px;margin-right:6px;vertical-align:-1px}
   .rd-legend .sw-me{background:rgba(166,27,34,.15);border:2px solid var(--red)}
@@ -567,6 +567,7 @@ function renderResult() {
   const groups = groupOrder.map(g => [g, mine.filter(r => r.group === g)]).filter(([, list]) => list.length);
 
   resultContent.innerHTML = tabs + overview + renderRadar(currentSubject, mine) + groups.map(([g, list], i) => renderGroup(i + 1, g, list)).join('');
+  fitRadar();
   resultContent.querySelectorAll('.subj').forEach(btn => btn.addEventListener('click', () => {
     currentSubject = btn.dataset.subject;
     renderResult();
@@ -604,7 +605,7 @@ function renderRadar(subject, mine) {
   }
   if (axes.length < 3) return '';
 
-  const R = 100, n = axes.length;
+  const R = 80, n = axes.length;
   const pt = (i, v) => {
     const a = -Math.PI / 2 + i * 2 * Math.PI / n;
     const r = R * (Math.min(100, Math.max(RADAR_MIN, v)) - RADAR_MIN) / (100 - RADAR_MIN);
@@ -618,18 +619,26 @@ function renderRadar(subject, mine) {
   const me = `<polygon class="rd-me" points="${poly(axes.map(a => a.me))}"/>` +
     axes.map((a, i) => { const [x, y] = pt(i, a.me); return `<circle class="rd-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5"/>`; }).join('');
   const labels = axes.map((a, i) => {
-    const ang = -Math.PI / 2 + i * 2 * Math.PI / n, x = (R + 22) * Math.cos(ang), y = (R + 22) * Math.sin(ang);
+    const ang = -Math.PI / 2 + i * 2 * Math.PI / n, x = (R + 16) * Math.cos(ang), y = (R + 16) * Math.sin(ang);
     const anchor = Math.abs(x) < 8 ? 'middle' : x > 0 ? 'start' : 'end';
-    const dy = y < -R / 2 ? -4 : y > R / 2 ? 14 : 5;
+    const dy = y < -R / 2 ? -6 : y > R / 2 ? 16 : 6;
     return `<text text-anchor="${anchor}" x="${x.toFixed(1)}" y="${(y + dy).toFixed(1)}"><tspan class="rd-lab">${a.label}</tspan><tspan class="rd-val" dx="6">${fmt(a.me)}</tspan></text>`;
   }).join('');
 
   return `<div class="radar">
     <div class="ov-cap">學習力雷達圖</div>
-    <svg viewBox="-175 -142 350 290" role="img" aria-label="${subject}能力雷達圖">${rings}${spokes}${ticks}${cls}${me}${labels}</svg>
+    <svg viewBox="-190 -125 380 250" role="img" aria-label="${subject}能力雷達圖">${rings}${spokes}${ticks}${cls}${me}${labels}</svg>
     <div class="rd-legend"><span><i class="sw-me"></i>個人</span>${cls ? '<span><i class="sw-cls"></i>班級平均</span>' : ''}</div>
     ${subject === '數學' && axes.some(a => a.label === '穩定度') ? '<div class="rd-note">穩定度：各次成績起伏越小，分數越高</div>' : ''}
   </div>`;
+}
+
+// 依文字實際寬度重設 viewBox，向度名稱再長也會完整留在卡片內
+function fitRadar() {
+  const svg = resultContent.querySelector('.radar svg');
+  if (!svg) return;
+  const b = svg.getBBox(), pad = 6;
+  if (b.width) svg.setAttribute('viewBox', `${(b.x - pad).toFixed(1)} ${(b.y - pad).toFixed(1)} ${(b.width + pad * 2).toFixed(1)} ${(b.height + pad * 2).toFixed(1)}`);
 }
 
 function renderGroup(no, name, list) {
