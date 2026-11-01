@@ -114,6 +114,24 @@
   .ov-cap small{font-family:var(--sans);font-weight:400;font-size:11px;color:var(--ink-3);letter-spacing:.05em;margin-left:6px}
   .ov-pair{display:grid;grid-template-columns:1fr 1fr}
   .ov-pair>div+div{border-left:1px dashed var(--line)}
+  /* 能力雷達：孩子是紅色實心，班級平均只是一條淡灰虛線當參考 */
+  .radar{margin:22px 0 8px;text-align:center}
+  .radar .ov-cap{margin:0 0 4px}
+  .radar svg{display:block;width:100%;max-width:380px;height:auto;margin:0 auto;overflow:visible}
+  .rd-ring{fill:none;stroke:var(--line-2);stroke-width:1}
+  .rd-ring.out{stroke:var(--line)}
+  .rd-axis{stroke:var(--line-2);stroke-width:1}
+  .rd-tick{font-size:10px;fill:var(--ink-3)}
+  .rd-cls{fill:none;stroke:var(--ink-3);stroke-width:1.5;stroke-dasharray:4 4}
+  .rd-me{fill:rgba(166,27,34,.15);stroke:var(--red);stroke-width:2;stroke-linejoin:round}
+  .rd-dot{fill:var(--red)}
+  .rd-lab{font-size:14px;fill:var(--ink)}
+  .rd-val{font-family:var(--serif);font-weight:700;font-size:15px;fill:var(--red)}
+  .rd-legend{display:flex;justify-content:center;gap:20px;font-size:13px;color:var(--ink-2);margin-top:6px}
+  .rd-legend i{display:inline-block;width:18px;height:10px;margin-right:6px;vertical-align:-1px}
+  .rd-legend .sw-me{background:rgba(166,27,34,.15);border:2px solid var(--red)}
+  .rd-legend .sw-cls{height:0;border-top:2px dashed var(--ink-3);vertical-align:3px}
+  .rd-note{font-size:12px;color:var(--ink-3);margin-top:4px}
   .overview .k{font-size:12px;color:var(--ink-2);letter-spacing:.15em;white-space:nowrap}
   .overview .v{font-family:var(--serif);font-weight:900;font-size:28px;line-height:1.25;font-variant-numeric:tabular-nums}
   .overview .v.red{color:var(--red)}
@@ -363,6 +381,7 @@ const templateModal = $('template-modal');
 // ---------- 狀態 ----------
 let currentRecords = [];
 let currentSubject = '國語';
+let currentClassStability = null;
 let teacherPassword = 'teacher123';
 
 // ---------- 讀取 ----------
@@ -547,20 +566,77 @@ function renderResult() {
   const groupOrder = SUBJECTS.find(s => s.name === currentSubject).groups.map(g => g[0]);
   const groups = groupOrder.map(g => [g, mine.filter(r => r.group === g)]).filter(([, list]) => list.length);
 
-  resultContent.innerHTML = tabs + overview + groups.map(([g, list], i) => renderGroup(i + 1, g, list)).join('');
+  resultContent.innerHTML = tabs + overview + renderRadar(currentSubject, mine) + groups.map(([g, list], i) => renderGroup(i + 1, g, list)).join('');
   resultContent.querySelectorAll('.subj').forEach(btn => btn.addEventListener('click', () => {
     currentSubject = btn.dataset.subject;
     renderResult();
   }));
 }
 
-function renderGroup(no, name, list) {
+// 一個小類的個人平均與班級平均；本人這類都還沒有分數時，個人是 null，班級平均照算
+function groupPair(list) {
   const both = list.filter(r => r.value !== null && r.avg !== null);
-  const miss = list.filter(r => r.status === 'missing').length;
-  // 本人這類都還沒有分數時，個人顯示「—」，班級平均照列
   const avgs = (both.length ? both : list.filter(r => r.avg !== null)).map(r => r.avg);
-  const stat = avgs.length
-    ? `<span class="g-num"><span>個人</span><b>${both.length ? fmt(mean(both.map(r => r.value))) : '—'}</b></span><span class="g-num cls"><span>班級</span><b>${fmt(mean(avgs))}</b></span>`
+  return { me: both.length ? mean(both.map(r => r.value)) : null, cls: avgs.length ? mean(avgs) : null };
+}
+
+// 雷達圖的軸：小類 → 家長看得懂的能力名稱；數學另外加「穩定度」
+const RADAR_AXES = {
+  國語: [['朗讀', '朗讀表達'], ['形音義與成語', '字詞基礎'], ['內容深究', '課文理解'], ['閱讀理解', '閱讀素養'], ['習作', '課習演練'], ['線上測驗', '線上測驗']],
+  數學: [['隨堂測驗', '課堂理解'], ['習作', '課習演練'], ['線上測驗', '綜合應用']],
+};
+const RADAR_MIN = 70; // 全班多在 80–100，中心從 70 起、每 5 分一圈，個人和班級的差距才看得出來
+// 穩定度：各次分數起伏（標準差）越小越高，100 − 2 × 標準差；Code.gs 用同一個公式算班級
+function stabilityOf(vals) {
+  if (vals.length < 3) return null;
+  const m = mean(vals);
+  return Math.max(0, 100 - 2 * Math.sqrt(mean(vals.map(v => (v - m) ** 2))));
+}
+
+function renderRadar(subject, mine) {
+  const axes = RADAR_AXES[subject].map(([group, label]) => {
+    const list = mine.filter(r => r.group === group);
+    return list.length ? { label, ...groupPair(list) } : null;
+  }).filter(a => a && a.me !== null);
+  if (subject === '數學') {
+    const me = stabilityOf(mine.filter(r => r.group !== '月考成績' && r.value !== null).map(r => r.value));
+    if (me !== null) axes.push({ label: '穩定度', me, cls: currentClassStability });
+  }
+  if (axes.length < 3) return '';
+
+  const R = 100, n = axes.length;
+  const pt = (i, v) => {
+    const a = -Math.PI / 2 + i * 2 * Math.PI / n;
+    const r = R * (Math.min(100, Math.max(RADAR_MIN, v)) - RADAR_MIN) / (100 - RADAR_MIN);
+    return [r * Math.cos(a), r * Math.sin(a)];
+  };
+  const poly = vals => vals.map((v, i) => pt(i, v).map(x => x.toFixed(1)).join(',')).join(' ');
+  const rings = [75, 80, 85, 90, 95, 100].map(v => `<polygon class="rd-ring${v === 100 ? ' out' : ''}" points="${poly(axes.map(() => v))}"/>`).join('');
+  const spokes = axes.map((_, i) => { const [x, y] = pt(i, 100); return `<line class="rd-axis" x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`; }).join('');
+  const ticks = [80, 100].map(v => `<text class="rd-tick" x="6" y="${(-R * (v - RADAR_MIN) / (100 - RADAR_MIN) + 3).toFixed(1)}">${v}</text>`).join('');
+  const cls = axes.every(a => a.cls !== null) ? `<polygon class="rd-cls" points="${poly(axes.map(a => a.cls))}"/>` : '';
+  const me = `<polygon class="rd-me" points="${poly(axes.map(a => a.me))}"/>` +
+    axes.map((a, i) => { const [x, y] = pt(i, a.me); return `<circle class="rd-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5"/>`; }).join('');
+  const labels = axes.map((a, i) => {
+    const ang = -Math.PI / 2 + i * 2 * Math.PI / n, x = (R + 22) * Math.cos(ang), y = (R + 22) * Math.sin(ang);
+    const anchor = Math.abs(x) < 8 ? 'middle' : x > 0 ? 'start' : 'end';
+    const dy = y < -R / 2 ? -14 : y > R / 2 ? 6 : -4;
+    return `<text text-anchor="${anchor}" x="${x.toFixed(1)}" y="${(y + dy).toFixed(1)}"><tspan class="rd-lab">${a.label}</tspan><tspan class="rd-val" x="${x.toFixed(1)}" dy="18">${fmt(a.me)}</tspan></text>`;
+  }).join('');
+
+  return `<div class="radar">
+    <div class="ov-cap">能力分布<small>平時成績</small></div>
+    <svg viewBox="-175 -150 350 316" role="img" aria-label="${subject}能力雷達圖">${rings}${spokes}${ticks}${cls}${me}${labels}</svg>
+    <div class="rd-legend"><span><i class="sw-me"></i>個人</span>${cls ? '<span><i class="sw-cls"></i>班級平均</span>' : ''}</div>
+    ${subject === '數學' && axes.some(a => a.label === '穩定度') ? '<div class="rd-note">穩定度：各次成績起伏越小，分數越高</div>' : ''}
+  </div>`;
+}
+
+function renderGroup(no, name, list) {
+  const { me, cls } = groupPair(list);
+  const miss = list.filter(r => r.status === 'missing').length;
+  const stat = cls !== null
+    ? `<span class="g-num"><span>個人</span><b>${me !== null ? fmt(me) : '—'}</b></span><span class="g-num cls"><span>班級</span><b>${fmt(cls)}</b></span>`
     : '<span></span><span></span>';
   return `<details class="grp">
     <summary>
@@ -618,6 +694,8 @@ async function handleQuery(e) {
   $('student-name').textContent = res.student.name;
   // 所有啟用中的工作表合併成一份
   currentRecords = res.sheets.flatMap(studentRecords).sort(byDate);
+  const stabs = res.sheets.map(sh => sh.classStability).filter(v => v != null);
+  currentClassStability = stabs.length ? mean(stabs) : null;
   querySection.classList.add('hidden');
   resultSection.classList.remove('hidden');
   renderResult();
