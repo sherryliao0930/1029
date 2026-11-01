@@ -613,7 +613,7 @@ function renderRadar(subject, mine) {
   const poly = vals => vals.map((v, i) => pt(i, v).map(x => x.toFixed(1)).join(',')).join(' ');
   const rings = [75, 80, 85, 90, 95, 100].map(v => `<polygon class="rd-ring${v === 100 ? ' out' : ''}" points="${poly(axes.map(() => v))}"/>`).join('');
   const spokes = axes.map((_, i) => { const [x, y] = pt(i, 100); return `<line class="rd-axis" x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`; }).join('');
-  const ticks = [80, 100].map(v => `<text class="rd-tick" x="6" y="${(-R * (v - RADAR_MIN) / (100 - RADAR_MIN) + 3).toFixed(1)}">${v}</text>`).join('');
+  const ticks = [RADAR_MIN, 100].map(v => `<text class="rd-tick" x="6" y="${(-R * (v - RADAR_MIN) / (100 - RADAR_MIN) + 3).toFixed(1)}">${v}</text>`).join('');
   const cls = axes.every(a => a.cls !== null) ? `<polygon class="rd-cls" points="${poly(axes.map(a => a.cls))}"/>` : '';
   const me = `<polygon class="rd-me" points="${poly(axes.map(a => a.me))}"/>` +
     axes.map((a, i) => { const [x, y] = pt(i, a.me); return `<circle class="rd-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5"/>`; }).join('');
