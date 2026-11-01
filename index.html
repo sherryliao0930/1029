@@ -115,8 +115,8 @@
   .ov-pair{display:grid;grid-template-columns:1fr 1fr}
   .ov-pair>div+div{border-left:1px dashed var(--line)}
   /* 能力雷達：孩子是紅色實心，班級平均只是一條淡灰虛線當參考 */
-  .radar{margin:22px 0 8px;text-align:center}
-  .radar .ov-cap{margin:0 0 4px}
+  .radar{margin:30px 0 22px;padding:14px 12px 14px;text-align:center;background:var(--card);border:1px solid var(--line-2);border-radius:3px}
+  .radar .ov-cap{margin:0 6px 8px}
   .radar svg{display:block;width:100%;max-width:380px;height:auto;margin:0 auto;overflow:visible}
   .rd-ring{fill:none;stroke:var(--line-2);stroke-width:1}
   .rd-ring.out{stroke:var(--line)}
@@ -743,8 +743,11 @@ async function loadColumnMap() {
         `${escapeHTML(prettyName(it.name, s.name).title)}<span class="${source(it) === '平均列' ? 'off' : 'warn'}">（${source(it)}）</span>`).join('、')}</div>`).join('')
     ).join('');
     const hidden = items.filter(it => !it.cls);
+    const stab = sh.classStability === undefined ? '<span class="warn">Apps Script 是舊版，請重新部署新版本</span>'
+      : sh.classStability === null ? '<span class="warn">數學平時成績不足 3 次，還算不出來</span>' : fmt(sh.classStability);
     return `<h4>${escapeHTML(sh.name)}</h4>${shown || '<div class="mrow off">沒有國語、數學欄位</div>'}${
-      hidden.length ? `<div class="mrow off">不顯示：${hidden.map(it => escapeHTML(it.name)).join('、')}</div>` : ''}`;
+      hidden.length ? `<div class="mrow off">不顯示：${hidden.map(it => escapeHTML(it.name)).join('、')}</div>` : ''}
+      <div class="mrow">雷達圖・數學班級穩定度：${stab}</div>`;
   }).join('') : '沒有啟用中的工作表。';
 }
 
