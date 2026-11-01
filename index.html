@@ -452,7 +452,7 @@ function prettyName(raw, subject) {
        .replace(/^[國數](?=[\d習卷一二三四五六七八九十（(])/, '')
        .replace(/^[（(]?([一二三四五六七八九十]+)[)）]?/, (m, n) => CN_NUM.includes(n) ? String(CN_NUM.indexOf(n)) : m)
        .replace(/^(\d+)單元/, '$1')
-       .replace(/朗讀(\d+)$/, (_, n) => `朗讀（${CN_NUM[+n] || n}）`);
+       .replace(/朗讀(\d+)$/, '朗讀（$1）');
 
   let m;
   if ((m = s.match(/^習(\d+)$/))) s = `第${m[1]}${unit} 習作`;
