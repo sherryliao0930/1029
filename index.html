@@ -551,14 +551,14 @@ function renderResult() {
   ).join('')}</div>`;
 
   // 月考與平時的比例還沒定，概況只算平時成績
-  const daily = mine.filter(r => r.group !== '月考成績' && r.value !== null && r.avg !== null);
+  const daily = weightedDaily(currentSubject, mine);
   const overview = `<div class="overview">
     <div class="ov-cell"><div class="k">已登錄</div><div class="v">${mine.filter(r => r.value !== null).length}<small>項</small></div></div>
     <div class="ov-group">
       <div class="ov-cap">平時成績<small>不含月考成績</small></div>
       <div class="ov-pair">
-        <div><div class="k">個人平均</div><div class="v red">${daily.length ? fmt(mean(daily.map(r => r.value))) : '—'}</div></div>
-        <div><div class="k">班級平均</div><div class="v">${daily.length ? fmt(mean(daily.map(r => r.avg))) : '—'}</div></div>
+        <div><div class="k">個人平均</div><div class="v red">${daily ? fmt(daily.me) : '—'}</div></div>
+        <div><div class="k">班級平均</div><div class="v">${daily ? fmt(daily.cls) : '—'}</div></div>
       </div>
     </div>
   </div>`;
@@ -582,6 +582,23 @@ function groupPair(list) {
 }
 
 // 雷達圖的軸：小類 → 家長看得懂的能力名稱；數學另外加「穩定度」
+// 平時成績各小類佔比；孩子某一類還沒有分數時，其餘類別依比例重新分配。個人、班級用同樣的類別結算
+const DAILY_WEIGHTS = {
+  國語: { 內容深究: 30, 形音義與成語: 25, 習作: 20, 朗讀: 15, 閱讀理解: 10 },
+  數學: { 隨堂測驗: 40, 習作: 20, 線上測驗: 40 },
+};
+function weightedDaily(subject, mine) {
+  const parts = Object.entries(DAILY_WEIGHTS[subject])
+    .map(([group, w]) => ({ w, ...groupPair(mine.filter(r => r.group === group)) }))
+    .filter(p => p.me !== null && p.cls !== null);
+  if (!parts.length) return null;
+  const total = parts.reduce((a, p) => a + p.w, 0);
+  return {
+    me: parts.reduce((a, p) => a + p.me * p.w, 0) / total,
+    cls: parts.reduce((a, p) => a + p.cls * p.w, 0) / total,
+  };
+}
+
 const RADAR_AXES = {
   國語: [['朗讀', '朗讀表達'], ['形音義與成語', '字詞基礎'], ['內容深究', '課文理解'], ['閱讀理解', '閱讀素養'], ['習作', '課習演練'], ['線上測驗', '線上測驗']],
   數學: [['隨堂測驗', '課堂理解'], ['習作', '課習演練'], ['線上測驗', '綜合應用']],
