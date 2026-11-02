@@ -167,6 +167,7 @@
   .row .sc,.row .av,.row .st{font-family:var(--serif);font-size:17px;text-align:right;line-height:1.3;font-variant-numeric:tabular-nums;white-space:nowrap}
   .row .sc{font-weight:700}
   .row .av{color:var(--ink-2)}
+  .row.cnt .unit{font-size:13px;color:var(--ink-3);text-align:left;padding-left:2px}
   .row .st{font-size:15px;color:var(--ink-2)}
   .row .st.st-red{color:var(--red)}
   .row .txt{grid-column:2/-1;font-size:13px;white-space:pre-line;text-align:right}
@@ -365,6 +366,7 @@ const SUBJECTS = [
   ]},
 ];
 const AVG_LABEL = /^(班級)?平均$/;
+const COUNT_COL = /篇數/; // 例如「閱讀理解有效閱讀篇數」：放在所屬小類裡顯示篇數，不算成績、不算平均
 const MISSING_WORDS = /未做|未繳|未交|缺交|補交|未參與/;
 const ABSENT_WORDS = /缺|請假|公假|病假|事假/;
 
@@ -380,6 +382,7 @@ const templateModal = $('template-modal');
 
 // ---------- 狀態 ----------
 let currentRecords = [];
+let currentCounts = []; // 篇數這類計數欄位：只列出來，不算平均
 let currentSubject = '國語';
 let currentClassStability = null;
 let teacherPassword = 'teacher123';
@@ -662,6 +665,7 @@ function renderGroup(no, name, list) {
   const { me, cls } = groupPair(list);
   const miss = list.filter(r => r.status === 'missing').length;
   const pct = DAILY_WEIGHTS[currentSubject]?.[name];
+  const counts = currentCounts.filter(c => c.subject === currentSubject && c.group === name);
   const stat = cls !== null
     ? `<span class="g-num"><span>個人</span><b>${me !== null ? fmt(me) : '—'}</b></span><span class="g-num cls"><span>班級</span><b>${fmt(cls)}</b></span>`
     : '<span></span><span></span>';
@@ -674,6 +678,7 @@ function renderGroup(no, name, list) {
     <div class="sheet">
       <div class="colhead"><span>項目</span><span>成績</span><span>班級平均</span></div>
       ${list.map(renderRow).join('')}
+      ${counts.map(c => `<div class="row cnt"><span class="nm" title="${escapeHTML(c.name)}">${escapeHTML(c.name.replace(/^閱讀理解/, '').replace(/篇數$/, ''))}</span><span class="sc">${c.value !== null ? c.value : '—'}</span><span class="unit">${c.value !== null ? '篇' : ''}</span></div>`).join('')}
     </div>
   </details>`;
 }
@@ -720,7 +725,9 @@ async function handleQuery(e) {
   $('student-seat').textContent = res.student.seat;
   $('student-name').textContent = res.student.name;
   // 所有啟用中的工作表合併成一份
-  currentRecords = res.sheets.flatMap(studentRecords).sort(byDate);
+  const all = res.sheets.flatMap(studentRecords).sort(byDate);
+  currentRecords = all.filter(r => !COUNT_COL.test(r.name));
+  currentCounts = all.filter(r => COUNT_COL.test(r.name));
   const stabs = res.sheets.map(sh => sh.classStability).filter(v => v != null);
   currentClassStability = stabs.length ? mean(stabs) : null;
   querySection.classList.add('hidden');
