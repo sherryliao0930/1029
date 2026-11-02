@@ -167,7 +167,13 @@
   .row .sc,.row .av,.row .st{font-family:var(--serif);font-size:17px;text-align:right;line-height:1.3;font-variant-numeric:tabular-nums;white-space:nowrap}
   .row .sc{font-weight:700}
   .row .av{color:var(--ink-2)}
-  .row.cnt .unit{font-size:13px;color:var(--ink-3);text-align:left;padding-left:2px}
+  .cnt-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:14px 0 12px}
+  .cnt-card{background:var(--paper);border:1px solid var(--red-line);border-radius:3px;padding:12px 10px 10px;text-align:center}
+  .cnt-card span{display:block;font-size:13px;letter-spacing:.15em;color:var(--ink-2)}
+  .cnt-card b{display:block;margin-top:2px;font-family:var(--serif);font-weight:900;font-size:30px;line-height:1.15;color:var(--red);font-variant-numeric:tabular-nums}
+  .cnt-card b small{font-family:var(--sans);font-weight:400;font-size:13px;color:var(--ink-3);margin-left:4px}
+  .cnt-card.dim{border-color:var(--line)}
+  .cnt-card.dim b{color:var(--ink-2)}
   .row .st{font-size:15px;color:var(--ink-2)}
   .row .st.st-red{color:var(--red)}
   .row .txt{grid-column:2/-1;font-size:13px;white-space:pre-line;text-align:right}
@@ -678,7 +684,10 @@ function renderGroup(no, name, list) {
     <div class="sheet">
       <div class="colhead"><span>項目</span><span>成績</span><span>班級平均</span></div>
       ${list.map(renderRow).join('')}
-      ${counts.map(c => `<div class="row cnt"><span class="nm" title="${escapeHTML(c.name)}">${escapeHTML(c.name.replace(/^閱讀理解/, '').replace(/篇數$/, ''))}</span><span class="sc">${c.value !== null ? c.value : '—'}</span><span class="unit">${c.value !== null ? '篇' : ''}</span></div>`).join('')}
+      ${counts.length ? `<div class="cnt-cards">${counts.map(c => `<div class="cnt-card${/無效/.test(c.name) ? ' dim' : ''}">
+        <span>${escapeHTML(c.name.replace(/^閱讀理解/, '').replace(/篇數$/, ''))}</span>
+        <b>${c.value !== null ? c.value : '—'}${c.value !== null ? '<small>篇</small>' : ''}</b>
+      </div>`).join('')}</div>` : ''}
     </div>
   </details>`;
 }
