@@ -169,7 +169,7 @@
   .row .av{color:var(--ink-2)}
   .cnt-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:8px;margin:14px 0 12px}
   .cnt-card{background:var(--paper);border:1px solid var(--red-line);border-radius:3px;padding:12px 4px 10px;text-align:center}
-  .cnt-card span{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-2);white-space:nowrap}
+  .cnt-card span{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-2);line-height:1.35}
   .cnt-card b{display:block;margin-top:2px;font-family:var(--serif);font-weight:900;font-size:28px;line-height:1.15;color:var(--red);font-variant-numeric:tabular-nums}
   .cnt-card b small{font-family:var(--sans);font-weight:400;font-size:13px;color:var(--ink-3);margin-left:2px}
   .cnt-card.dim{border-color:var(--line)}
@@ -377,14 +377,15 @@ const COUNT_COL = /篇數|答對率/; // 例如「閱讀理解有效閱讀篇數
 // 小卡的名稱與數值：篇數加「篇」；答對率加「%」，試算表寫 85、85% 或 0.85 都顯示成 85%
 function cardOf(c) {
   const label = c.name.replace(/^閱讀理解/, '').replace(/篇數$/, '').replace(/^有效閱讀(?=平均答對率)/, '');
+  const shown = /答對率/.test(c.name) ? label : label.replace(/(有效|無效)閱讀/, '$1自主閱讀');
   const raw = String(c.score ?? '').trim().replace(/[%％]$/, '');
   let v = num(raw);
-  if (v === null) return { label, value: raw || '—', unit: '' };
+  if (v === null) return { label: shown, value: raw || '—', unit: '' };
   if (/答對率/.test(c.name)) {
     if (v <= 1 && raw.includes('.')) v *= 100;
-    return { label, value: fmt(v), unit: '%' };
+    return { label: shown, value: fmt(v), unit: '%' };
   }
-  return { label, value: raw, unit: '篇' };
+  return { label: shown, value: raw, unit: '篇' };
 }
 const MISSING_WORDS = /未做|未繳|未交|缺交|補交|未參與/;
 const ABSENT_WORDS = /缺|請假|公假|病假|事假/;
