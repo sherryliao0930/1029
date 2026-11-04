@@ -120,7 +120,7 @@
   .ov-pair{display:grid;grid-template-columns:1fr 1fr}
   .ov-pair>div+div{border-left:1px dashed var(--line)}
   /* 能力雷達：孩子是紅色實心，班級平均只是一條淡灰虛線當參考 */
-  /* 月考快訊：海狸直接坐在頁面上，右邊五科是右下角翹起來的便利貼 */
+  /* 月考快訊：海狸直接坐在頁面上，右邊是五科成績表 */
   .exam{display:grid;grid-template-columns:40% 1fr;align-items:center;column-gap:6px;margin:20px 0 10px;padding:4px 2px 8px 0}
   .exam-side{display:flex;flex-direction:column;align-items:center;text-align:center}
   .exam-side h3{margin:0 0 4px;font-family:var(--serif);font-weight:900;font-size:18px;letter-spacing:.15em;color:var(--red);white-space:nowrap}
@@ -128,21 +128,15 @@
   .exam-body{min-width:0}
   .exam-block+.exam-block{margin-top:14px}
   .exam-block h4{margin:0 0 6px;font-family:var(--serif);font-weight:700;font-size:14px;letter-spacing:.15em;color:var(--red);text-align:center}
-  .exam-board{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;padding:4px 4px 6px}
-  .pin-card{--note:#FFF2B8;--fold:#E9D68A;position:relative;padding:10px 4px 8px;text-align:center;
-    background:linear-gradient(315deg,transparent 14px,var(--note) 14px);
-    filter:drop-shadow(0 1px 1px rgba(80,60,20,.12)) drop-shadow(1px 5px 5px rgba(80,60,20,.16));transform:rotate(-1.5deg)}
-  .pin-card:nth-child(2),.pin-card:nth-child(4){--note:#FCDDE0;--fold:#E8B3B9;transform:rotate(1.4deg)}
-  .pin-card:nth-child(3){--note:#FFE4CC;--fold:#EBBE95}
-  .pin-card:nth-child(5){grid-column:1 / -1;justify-self:center;width:calc(50% - 6px);transform:rotate(-.8deg)}
-  /* 右下角翹起的那一角 */
-  .pin-card::after{content:'';position:absolute;right:0;bottom:0;width:20px;height:20px;
-    background:linear-gradient(315deg,transparent 50%,var(--fold) 50%,var(--note) 100%);border-top-left-radius:3px;
-    box-shadow:-2px -2px 3px rgba(80,60,20,.10)}
-  .pc-s{display:block;font-size:13px;letter-spacing:.2em;color:var(--ink-2)}
-  .pin-card b{display:block;font-family:var(--serif);font-weight:900;font-size:26px;line-height:1.15;color:var(--red);font-variant-numeric:tabular-nums}
-  .pc-c{display:block;margin:2px 10px 0;padding-top:3px;border-top:1px dashed rgba(120,90,40,.3);font-size:12px;color:var(--ink-3)}
-  .pc-c em{font-style:normal;font-family:var(--serif);font-size:14px;color:var(--ink-2);margin-left:3px}
+  /* 五科整合成一張表：科目／個人／班級 */
+  .exam-table{display:grid;grid-template-columns:auto 1fr 1fr;align-items:baseline;column-gap:8px;padding:6px 12px 4px;
+    background:#fff;border:1px solid var(--line-2);border-radius:4px;box-shadow:0 2px 6px rgba(80,50,30,.08)}
+  .exam-table span{padding:6px 0;border-bottom:1px solid var(--line-2);text-align:right;font-variant-numeric:tabular-nums}
+  .exam-table .et-h{padding:2px 0 5px;font-size:12px;letter-spacing:.15em;color:var(--red);border-bottom:1px solid var(--red-line)}
+  .exam-table .et-s{text-align:left;font-size:14px;letter-spacing:.12em;color:var(--ink)}
+  .exam-table .et-me{font-family:var(--serif);font-weight:900;font-size:21px;line-height:1.2;color:var(--red)}
+  .exam-table .et-cls{font-family:var(--serif);font-size:16px;color:var(--ink-2)}
+  .exam-table span:nth-last-child(-n+3){border-bottom:0}
   .radar{margin:30px 0 22px;padding:14px 12px 14px;text-align:center;background:var(--card);border:1px solid var(--line-2);border-radius:3px}
   .radar .ov-cap{margin:0 6px 10px;padding-bottom:8px;font-size:18px;letter-spacing:.25em}
   .radar svg{display:block;width:100%;max-width:400px;height:auto;margin:0 auto}
@@ -584,11 +578,14 @@ function renderExam() {
     <div class="exam-body">${titles.map((t, i) => {
       const list = currentExams.filter(e => e.title === t);
       return `<div class="exam-block">${i ? `<h4>${escapeHTML(t)}</h4>` : ''}
-        <div class="exam-board">${EXAM_SUBJECTS.map(([s]) => {
-          const c = list.find(e => e.subject === s);
-          const me = !c || c.score === '' ? '—' : c.value !== null ? fmt(c.value) : escapeHTML(c.score);
-          return `<div class="pin-card"><span class="pc-s">${s}</span><b>${me}</b><span class="pc-c">班級<em>${c && c.avg !== null ? fmt(c.avg) : '—'}</em></span></div>`;
-        }).join('')}</div>
+        <div class="exam-table">
+          <span class="et-h"></span><span class="et-h">個人</span><span class="et-h">班級</span>
+          ${EXAM_SUBJECTS.map(([s]) => {
+            const c = list.find(e => e.subject === s);
+            const me = !c || c.score === '' ? '—' : c.value !== null ? fmt(c.value) : escapeHTML(c.score);
+            return `<span class="et-s">${s}</span><span class="et-me">${me}</span><span class="et-cls">${c && c.avg !== null ? fmt(c.avg) : '—'}</span>`;
+          }).join('')}
+        </div>
       </div>`;
     }).join('')}</div>
   </section>`;
