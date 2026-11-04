@@ -648,7 +648,7 @@ function renderResult() {
   const overview = `<div class="overview">
     <div class="ov-cell"><div class="k">已登錄</div><div class="v">${mine.filter(r => r.value !== null).length}<small>項</small></div></div>
     <div class="ov-group">
-      <div class="ov-cap">平時成績<small>不含月考成績</small></div>
+      <div class="ov-cap">平時成績<small>不含期中評量</small></div>
       <div class="ov-pair">
         <div><div class="k">個人平均</div><div class="v red">${daily ? fmt(daily.me) : '—'}</div></div>
         <div><div class="k">班級平均</div><div class="v">${daily ? fmt(daily.cls) : '—'}</div></div>
