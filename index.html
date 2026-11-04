@@ -83,7 +83,7 @@
   .missing-head{display:flex;align-items:baseline;justify-content:center;gap:12px;padding:10px 16px;background:var(--red);color:var(--paper);font-size:15px}
   .missing-head b{font-family:var(--serif);font-weight:700;letter-spacing:.2em}
   .missing-head span{color:var(--red-pale);white-space:nowrap}
-  .missing-cols{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-items:stretch}
+  .missing-cols{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:stretch}
   .missing-col+.missing-col{border-left:1px solid var(--line)}
   /* 國語、數學標題列淡胭脂底；項目一行白、一行淡粉 */
   .missing-col{background:#fff}
@@ -95,7 +95,7 @@
   .missing-col ul{margin:0;padding:0;list-style:none}
   .missing-col li{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 14px;font-size:15px;line-height:1.45}
   .missing-col li+li{border-top:1px solid var(--line-2)}
-  .missing-col li span{min-width:0;color:var(--ink)}
+  .missing-col li span{flex:1;min-width:0;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .missing-col li em{font-style:normal;color:var(--ink-3);margin-left:6px;white-space:nowrap}
   .missing-col li i{font-style:normal;color:var(--red);white-space:nowrap}
   @media (max-width:420px){
@@ -120,23 +120,27 @@
   .ov-pair{display:grid;grid-template-columns:1fr 1fr}
   .ov-pair>div+div{border-left:1px dashed var(--line)}
   /* 能力雷達：孩子是紅色實心，班級平均只是一條淡灰虛線當參考 */
-  /* 月考快訊：左邊是月考名稱＋播報中的海狸，右邊是五科成績；身後一圈淡胭脂光暈把兩邊連成一個畫面 */
-  .exam{display:grid;grid-template-columns:46% 1fr;align-items:stretch;column-gap:4px;margin:18px 0 8px;padding:14px 14px 12px 8px;
-    background:radial-gradient(ellipse at 24% 70%,#F4D6CF 0,#F8E6E1 30%,rgba(251,244,241,0) 60%),linear-gradient(180deg,#FBF4F1,var(--card));
-    border:1px solid var(--red-line);border-radius:4px;overflow:hidden}
-  .exam-side{display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center}
-  .exam-side h3{margin:2px 0 6px;font-family:var(--serif);font-weight:900;font-size:19px;letter-spacing:.2em;color:var(--red)}
-  .exam-mascot{display:block;width:108%;max-width:none;height:auto;margin:0 0 -14px -4%;filter:drop-shadow(0 4px 6px rgba(120,40,30,.12))}
-  .exam-body{display:flex;flex-direction:column;justify-content:center}
-  .exam-block+.exam-block{margin-top:12px;padding-top:8px;border-top:1px dashed var(--red-line)}
-  .exam-block h4{margin:0 0 4px;font-family:var(--serif);font-weight:700;font-size:14px;letter-spacing:.15em;color:var(--red);text-align:center}
-  .exam-table{display:grid;grid-template-columns:auto 1fr 1fr;align-items:baseline;column-gap:8px;background:rgba(255,255,255,.72);border-radius:3px;padding:6px 10px 2px}
-  .exam-table span{padding:5px 0;border-bottom:1px solid rgba(166,27,34,.12);text-align:right;font-variant-numeric:tabular-nums}
-  .exam-table .et-h{padding:0 0 3px;font-size:12px;letter-spacing:.1em;color:var(--red);border-bottom:1px solid var(--red-line)}
-  .exam-table .et-s{text-align:left;font-size:14px;letter-spacing:.1em;color:var(--ink)}
-  .exam-table .et-me{font-family:var(--serif);font-weight:900;font-size:20px;line-height:1.2;color:var(--red)}
-  .exam-table .et-cls{font-family:var(--serif);font-size:16px;color:var(--ink-2)}
-  .exam-table span:nth-last-child(-n+3){border-bottom:0}
+  /* 月考快訊：像一面公佈欄，五科成績是釘上去的小卡；海狸坐在左邊播報 */
+  .exam{display:grid;grid-template-columns:40% 1fr;align-items:center;column-gap:6px;margin:20px 0 10px;padding:14px 12px 14px 6px;border-radius:6px;
+    background:radial-gradient(rgba(150,110,70,.10) 1px,transparent 1.5px) 0 0/9px 9px,linear-gradient(160deg,#F3E7D7,#EADBC6);
+    box-shadow:inset 0 1px 3px rgba(90,60,30,.18)}
+  .exam-side{display:flex;flex-direction:column;align-items:center;text-align:center}
+  .exam-side h3{margin:0 0 4px;font-family:var(--serif);font-weight:900;font-size:18px;letter-spacing:.15em;color:var(--red);white-space:nowrap}
+  .exam-mascot{display:block;width:112%;max-width:none;height:auto;margin:0 0 0 -4%;filter:drop-shadow(0 4px 5px rgba(90,50,20,.18))}
+  .exam-body{min-width:0}
+  .exam-block+.exam-block{margin-top:14px}
+  .exam-block h4{margin:0 0 6px;font-family:var(--serif);font-weight:700;font-size:14px;letter-spacing:.15em;color:var(--red);text-align:center}
+  .exam-board{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;padding-top:6px}
+  .pin-card{position:relative;padding:12px 4px 6px;background:#FFFDF9;border-radius:2px;text-align:center;
+    box-shadow:0 1px 1px rgba(60,40,20,.10),0 4px 8px rgba(60,40,20,.16);transform:rotate(-1.2deg)}
+  .pin-card:nth-child(even){transform:rotate(1.3deg)}
+  .pin-card:nth-child(5){grid-column:1 / -1;justify-self:center;width:calc(50% - 5px);transform:rotate(-.6deg)}
+  .pin-card .pin{position:absolute;top:-5px;left:50%;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#E8737A,var(--red) 60%,#6E1015);box-shadow:0 2px 2px rgba(0,0,0,.25)}
+  .pc-s{display:block;font-size:13px;letter-spacing:.2em;color:var(--ink-2)}
+  .pin-card b{display:block;font-family:var(--serif);font-weight:900;font-size:26px;line-height:1.15;color:var(--red);font-variant-numeric:tabular-nums}
+  .pc-c{display:block;margin-top:2px;padding-top:3px;border-top:1px dashed var(--line);font-size:12px;color:var(--ink-3)}
+  .pc-c em{font-style:normal;font-family:var(--serif);font-size:14px;color:var(--ink-2);margin-left:3px}
   .radar{margin:30px 0 22px;padding:14px 12px 14px;text-align:center;background:var(--card);border:1px solid var(--line-2);border-radius:3px}
   .radar .ov-cap{margin:0 6px 10px;padding-bottom:8px;font-size:18px;letter-spacing:.25em}
   .radar svg{display:block;width:100%;max-width:400px;height:auto;margin:0 auto}
@@ -574,18 +578,15 @@ function renderExam() {
   // 依試算表出現順序，最新一次月考排最上面；最新那次的名稱寫在海狸上方
   const titles = [...new Set(currentExams.map(e => e.title))].reverse();
   return `<section class="exam">
-    <div class="exam-side"><h3>${escapeHTML(titles[0])}</h3><img class="exam-mascot" src="exam-mascot.png" alt="月考快訊"></div>
+    <div class="exam-side"><h3>${escapeHTML(titles[0])}</h3><img class="exam-mascot" src="exam-mascot.webp" alt="月考快訊"></div>
     <div class="exam-body">${titles.map((t, i) => {
       const list = currentExams.filter(e => e.title === t);
       return `<div class="exam-block">${i ? `<h4>${escapeHTML(t)}</h4>` : ''}
-        <div class="exam-table">
-          <span class="et-h"></span><span class="et-h">個人</span><span class="et-h">班級</span>
-          ${EXAM_SUBJECTS.map(([s]) => {
-            const c = list.find(e => e.subject === s);
-            const me = !c || c.score === '' ? '—' : c.value !== null ? fmt(c.value) : escapeHTML(c.score);
-            return `<span class="et-s">${s}</span><span class="et-me">${me}</span><span class="et-cls">${c && c.avg !== null ? fmt(c.avg) : '—'}</span>`;
-          }).join('')}
-        </div>
+        <div class="exam-board">${EXAM_SUBJECTS.map(([s]) => {
+          const c = list.find(e => e.subject === s);
+          const me = !c || c.score === '' ? '—' : c.value !== null ? fmt(c.value) : escapeHTML(c.score);
+          return `<div class="pin-card"><i class="pin"></i><span class="pc-s">${s}</span><b>${me}</b><span class="pc-c">班級<em>${c && c.avg !== null ? fmt(c.avg) : '—'}</em></span></div>`;
+        }).join('')}</div>
       </div>`;
     }).join('')}</div>
   </section>`;
@@ -658,6 +659,7 @@ function renderResult() {
   const groupOrder = SUBJECTS.find(s => s.name === currentSubject).groups.map(g => g[0]);
   const groups = groupOrder.map(g => [g, mine.filter(r => r.group === g)]).filter(([, list]) => list.length);
 
+  fitMissing();
   resultContent.innerHTML = renderExam() + tabs + overview + renderRadar(currentSubject, mine) + groups.map(([g, list], i) => renderGroup(i + 1, g, list)).join('');
   fitRadar();
   resultContent.querySelectorAll('.subj').forEach(btn => btn.addEventListener('click', () => {
@@ -740,6 +742,18 @@ function renderRadar(subject, mine) {
     <div class="rd-legend"><span><i class="sw-me"></i>個人</span>${cls ? '<span><i class="sw-cls"></i>班級平均</span>' : ''}</div>
     ${subject === '數學' && axes.some(a => a.label === '穩定度') ? '<div class="rd-note">穩定度：各次成績起伏越小，分數越高</div>' : ''}
   </div>`;
+}
+
+// 缺漏項目一律一行；名稱太長就把字縮小（最小 9px），不換行
+function fitMissing() {
+  missingBox.querySelectorAll('.missing-col li span').forEach(el => {
+    el.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    // 量文字本身的寬度（含小數），比 scrollWidth 準，不會被四捨五入騙過
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    while (range.getBoundingClientRect().width > el.clientWidth && size > 9) el.style.fontSize = (size -= 0.5) + 'px';
+  });
 }
 
 // 依文字實際寬度重設 viewBox，向度名稱再長也會完整留在卡片內
@@ -900,6 +914,9 @@ function init() {
   $('close-modal-btn').addEventListener('click', hideTemplateModal);
   templateModal.addEventListener('click', e => { if (e.target === templateModal) hideTemplateModal(); });
   $('update-password-btn').addEventListener('click', handleUpdatePassword);
+  // 網頁字型載入後字寬會變，再量一次
+  window.addEventListener('resize', fitMissing);
+  document.fonts?.addEventListener?.('loadingdone', fitMissing);
 
   let saved = null;
   try { saved = JSON.parse(sessionStorage.getItem(LOGIN_KEY)); } catch (e) {}
