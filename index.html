@@ -128,15 +128,16 @@
   .exam-body{min-width:0}
   .exam-block+.exam-block{margin-top:14px}
   .exam-block h4{margin:0 0 6px;font-family:var(--serif);font-weight:700;font-size:14px;letter-spacing:.15em;color:var(--red);text-align:center}
-  /* 五科整合成一張表：科目／個人／班級 */
-  .exam-table{display:grid;grid-template-columns:auto 1fr 1fr;align-items:baseline;column-gap:8px;padding:6px 12px 4px;
-    background:#fff;border:1px solid var(--line-2);border-radius:4px;box-shadow:0 2px 6px rgba(80,50,30,.08)}
-  .exam-table span{padding:6px 0;border-bottom:1px solid var(--line-2);text-align:right;font-variant-numeric:tabular-nums}
-  .exam-table .et-h{padding:2px 0 5px;font-size:12px;letter-spacing:.15em;color:var(--red);border-bottom:1px solid var(--red-line)}
-  .exam-table .et-s{text-align:left;font-size:14px;letter-spacing:.12em;color:var(--ink)}
-  .exam-table .et-me{font-family:var(--serif);font-weight:900;font-size:21px;line-height:1.2;color:var(--red)}
-  .exam-table .et-cls{font-family:var(--serif);font-size:16px;color:var(--ink-2)}
-  .exam-table span:nth-last-child(-n+3){border-bottom:0}
+  /* 五科整合成一張表：每一列是一條完整的橫列，分隔線同高；陰影＋表頭漸層做出浮起來的立體感 */
+  .exam-table{overflow:hidden;background:linear-gradient(180deg,#fff,#FFFCF9);border:1px solid #EBDDD4;border-radius:6px;
+    box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 2px 3px rgba(90,50,30,.10),0 10px 18px -6px rgba(120,40,30,.22)}
+  .et-row{display:grid;grid-template-columns:3.2em 1fr 1fr;align-items:center;padding:0 12px;min-height:38px;border-top:1px solid #F0E6DF}
+  .et-row span{text-align:right;font-variant-numeric:tabular-nums;line-height:1}
+  .et-row .et-s{text-align:left;font-size:14px;letter-spacing:.12em;color:var(--ink)}
+  .et-row .et-me{font-family:var(--serif);font-weight:900;font-size:21px;color:var(--red)}
+  .et-row .et-cls{font-family:var(--serif);font-size:16px;color:var(--ink-2)}
+  .et-head{min-height:30px;border-top:0;background:linear-gradient(180deg,#F8E7E3,#F1D6D0);box-shadow:0 1px 0 rgba(166,27,34,.18)}
+  .et-head span{font-size:12px;letter-spacing:.15em;color:var(--red)}
   .radar{margin:30px 0 22px;padding:14px 12px 14px;text-align:center;background:var(--card);border:1px solid var(--line-2);border-radius:3px}
   .radar .ov-cap{margin:0 6px 10px;padding-bottom:8px;font-size:18px;letter-spacing:.25em}
   .radar svg{display:block;width:100%;max-width:400px;height:auto;margin:0 auto}
@@ -579,11 +580,11 @@ function renderExam() {
       const list = currentExams.filter(e => e.title === t);
       return `<div class="exam-block">${i ? `<h4>${escapeHTML(t)}</h4>` : ''}
         <div class="exam-table">
-          <span class="et-h"></span><span class="et-h">個人</span><span class="et-h">班級</span>
+          <div class="et-row et-head"><span></span><span>個人</span><span>班級</span></div>
           ${EXAM_SUBJECTS.map(([s]) => {
             const c = list.find(e => e.subject === s);
             const me = !c || c.score === '' ? '—' : c.value !== null ? fmt(c.value) : escapeHTML(c.score);
-            return `<span class="et-s">${s}</span><span class="et-me">${me}</span><span class="et-cls">${c && c.avg !== null ? fmt(c.avg) : '—'}</span>`;
+            return `<div class="et-row"><span class="et-s">${s}</span><span class="et-me">${me}</span><span class="et-cls">${c && c.avg !== null ? fmt(c.avg) : '—'}</span></div>`;
           }).join('')}
         </div>
       </div>`;
