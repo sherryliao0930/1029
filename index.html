@@ -554,14 +554,14 @@ function studentRecords(sheet) {
   });
 }
 
-// 月考：欄位名稱有「月考／期中考／期末考」＋科目，例如「第二次月考國語」「第二次月考英文」
+// 月考：欄位名稱有「期中評量／期末評量／月考」＋科目，例如「期中評量國語」「期中評量英文」
 // 五科都收進上方的月考卡片，不放進國數清單、不算平時成績
 const EXAM_SUBJECTS = [['國語', /國/], ['數學', /數/], ['社會', /社/], ['自然', /自然/], ['英文', /英/]];
 function examOf(name) {
-  if (!/月考|期中考|期末考/.test(name)) return null;
+  if (!/月考|期中|期末/.test(name)) return null;
   const subject = EXAM_SUBJECTS.find(([, re]) => re.test(name));
   if (!subject) return null;
-  const title = (name.match(/第[一二三四五六七八九十\d]+次月考|期中考|期末考|月考/) || ['月考'])[0];
+  const title = (name.match(/第[一二三四五六七八九十\d]+次月考|期[中末](評量|考)|月考/) || ['月考'])[0];
   return { title, subject: subject[0] };
 }
 function examRecords(sheet) {
