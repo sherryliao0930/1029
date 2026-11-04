@@ -120,6 +120,18 @@
   .ov-pair{display:grid;grid-template-columns:1fr 1fr}
   .ov-pair>div+div{border-left:1px dashed var(--line)}
   /* 能力雷達：孩子是紅色實心，班級平均只是一條淡灰虛線當參考 */
+  /* 月考快訊：吉祥物在上，五科個人與班級平均對齊成表 */
+  .exam{margin:18px 0 6px;padding:0 14px 14px;background:var(--card);border:1px solid var(--red-line);border-radius:3px;text-align:center}
+  .exam-mascot{display:block;width:62%;max-width:230px;height:auto;margin:-6px auto 2px}
+  .exam-block+.exam-block{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .exam h3{margin:0 0 8px;font-family:var(--serif);font-weight:900;font-size:19px;letter-spacing:.25em;color:var(--red)}
+  .exam-grid{display:grid;grid-template-columns:2.6em repeat(5,1fr);align-items:baseline;border-top:1px solid var(--red-line)}
+  .exam-grid span{padding:8px 0 6px;border-bottom:1px solid var(--line-2)}
+  .eg-k{font-size:13px;color:var(--red);text-align:left}
+  .eg-s{font-size:14px;letter-spacing:.1em;color:var(--ink-2);background:#F3DDD8}
+  .exam-grid .eg-k:first-child{background:#F3DDD8}
+  .eg-me{font-family:var(--serif);font-weight:900;font-size:22px;color:var(--red);font-variant-numeric:tabular-nums}
+  .eg-cls{font-family:var(--serif);font-size:17px;color:var(--ink-2);font-variant-numeric:tabular-nums}
   .radar{margin:30px 0 22px;padding:14px 12px 14px;text-align:center;background:var(--card);border:1px solid var(--line-2);border-radius:3px}
   .radar .ov-cap{margin:0 6px 10px;padding-bottom:8px;font-size:18px;letter-spacing:.25em}
   .radar svg{display:block;width:100%;max-width:400px;height:auto;margin:0 auto}
@@ -412,6 +424,7 @@ const templateModal = $('template-modal');
 // ---------- 狀態 ----------
 let currentRecords = [];
 let currentCounts = []; // 篇數這類計數欄位：只列出來，不算平均
+let currentExams = [];  // 月考五科
 let currentSubject = '國語';
 let currentClassStability = null;
 let teacherPassword = 'teacher123';
@@ -519,16 +532,58 @@ function itemsOf(headers) {
 }
 
 // API 回傳的一張工作表：本人那一列＋平均列＋全班自動平均
+function cellOf(sheet, it) {
+  const { score, avg: inCell } = splitCell(sheet.row[it.col]);
+  // 平均列優先；沒有平均列時才用舊格式，再沒有就用全班自動平均
+  const fromRow = sheet.avgRow ? num(splitCell(sheet.avgRow[it.col]).score) : null;
+  const avg = fromRow ?? inCell ?? (it.avgCol !== null ? num(sheet.row[it.avgCol]) : null) ?? sheet.autoAvg[it.col] ?? null;
+  return { score, value: num(score), avg };
+}
+
 function studentRecords(sheet) {
-  const row = sheet.row;
-  if (!row) return [];
-  return itemsOf(sheet.headers).filter(it => it.cls).map(it => {
-    const { score, avg: inCell } = splitCell(row[it.col]);
-    // 平均列優先；沒有平均列時才用舊格式，再沒有就用全班自動平均
-    const fromRow = sheet.avgRow ? num(splitCell(sheet.avgRow[it.col]).score) : null;
-    const avg = fromRow ?? inCell ?? (it.avgCol !== null ? num(row[it.avgCol]) : null) ?? sheet.autoAvg[it.col] ?? null;
-    return { ...it.cls, ...prettyName(it.name, it.cls.subject), name: it.name, score, value: num(score), avg, status: scoreStatus(score) };
+  if (!sheet.row) return [];
+  return itemsOf(sheet.headers).filter(it => it.cls && !examOf(it.name)).map(it => {
+    const c = cellOf(sheet, it);
+    return { ...it.cls, ...prettyName(it.name, it.cls.subject), name: it.name, ...c, status: scoreStatus(c.score) };
   });
+}
+
+// 月考：欄位名稱有「月考／期中考／期末考」＋科目，例如「第二次月考國語」「第二次月考英文」
+// 五科都收進上方的月考卡片，不放進國數清單、不算平時成績
+const EXAM_SUBJECTS = [['國語', /國/], ['數學', /數/], ['社會', /社/], ['自然', /自然/], ['英文', /英/]];
+function examOf(name) {
+  if (!/月考|期中考|期末考/.test(name)) return null;
+  const subject = EXAM_SUBJECTS.find(([, re]) => re.test(name));
+  if (!subject) return null;
+  const title = (name.match(/第[一二三四五六七八九十\d]+次月考|期中考|期末考|月考/) || ['月考'])[0];
+  return { title, subject: subject[0] };
+}
+function examRecords(sheet) {
+  if (!sheet.row) return [];
+  return itemsOf(sheet.headers).map(it => ({ it, ex: examOf(it.name) })).filter(x => x.ex)
+    .map(({ it, ex }) => ({ ...ex, ...cellOf(sheet, it) }));
+}
+
+function renderExam() {
+  if (!currentExams.length) return '';
+  // 依試算表出現順序，最新一次月考排最上面
+  const titles = [...new Set(currentExams.map(e => e.title))].reverse();
+  return `<section class="exam">
+    <img class="exam-mascot" src="exam-mascot.png" alt="月考快訊">
+    ${titles.map(t => {
+      const list = currentExams.filter(e => e.title === t);
+      const cell = s => list.find(e => e.subject === s);
+      const cols = EXAM_SUBJECTS.map(([s]) => s);
+      return `<div class="exam-block">
+        <h3>${escapeHTML(t)}</h3>
+        <div class="exam-grid">
+          <span class="eg-k"></span>${cols.map(s => `<span class="eg-s">${s}</span>`).join('')}
+          <span class="eg-k">個人</span>${cols.map(s => { const c = cell(s); return `<span class="eg-me">${!c || c.score === '' ? '—' : c.value !== null ? fmt(c.value) : escapeHTML(c.score)}</span>`; }).join('')}
+          <span class="eg-k">班級</span>${cols.map(s => { const c = cell(s); return `<span class="eg-cls">${c && c.avg !== null ? fmt(c.avg) : '—'}</span>`; }).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+  </section>`;
 }
 
 // 有日期的由新到舊排在前面；沒有日期的依課次由小到大，連課次都沒有的照試算表順序接在最後
@@ -598,7 +653,7 @@ function renderResult() {
   const groupOrder = SUBJECTS.find(s => s.name === currentSubject).groups.map(g => g[0]);
   const groups = groupOrder.map(g => [g, mine.filter(r => r.group === g)]).filter(([, list]) => list.length);
 
-  resultContent.innerHTML = tabs + overview + renderRadar(currentSubject, mine) + groups.map(([g, list], i) => renderGroup(i + 1, g, list)).join('');
+  resultContent.innerHTML = renderExam() + tabs + overview + renderRadar(currentSubject, mine) + groups.map(([g, list], i) => renderGroup(i + 1, g, list)).join('');
   fitRadar();
   resultContent.querySelectorAll('.subj').forEach(btn => btn.addEventListener('click', () => {
     currentSubject = btn.dataset.subject;
@@ -758,6 +813,7 @@ async function handleQuery(e) {
   $('student-seat').textContent = res.student.seat;
   $('student-name').textContent = res.student.name;
   // 所有啟用中的工作表合併成一份
+  currentExams = res.sheets.flatMap(examRecords);
   const all = res.sheets.flatMap(studentRecords).sort(byDate);
   currentRecords = all.filter(r => !COUNT_COL.test(r.name));
   currentCounts = all.filter(r => COUNT_COL.test(r.name));
