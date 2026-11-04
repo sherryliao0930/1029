@@ -90,8 +90,8 @@
   .missing-col h4{background:#F3DDD8}
   .missing-col li{background:#fff}
   .missing-col li:nth-child(even){background:#F9ECE8}
-  .missing-col h4{margin:0;padding:9px 14px;font-size:15px;font-weight:700;color:var(--red);letter-spacing:.15em;border-bottom:1px solid var(--line);display:flex;justify-content:center;gap:10px;align-items:baseline}
-  .missing-col h4 small{font-size:15px;font-weight:400;color:var(--ink-3);letter-spacing:0}
+  .missing-col h4{margin:0;padding:9px 14px;font-size:15px;font-weight:700;color:var(--red);letter-spacing:.15em;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:baseline}
+  .missing-col h4 small{justify-self:end;font-size:13px;font-weight:400;color:var(--ink-3);letter-spacing:0;white-space:nowrap}
   .missing-col ul{margin:0;padding:0;list-style:none}
   .missing-col li{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 14px;font-size:15px;line-height:1.45}
   .missing-col li+li{border-top:1px solid var(--line-2)}
@@ -100,7 +100,7 @@
   .missing-col li i{font-style:normal;color:var(--red);white-space:nowrap}
   @media (max-width:420px){
     .missing-col h4,.missing-col li{padding-left:10px;padding-right:10px;font-size:14px}
-    .missing-col h4 small{font-size:14px}
+    .missing-col h4 small{font-size:13px}
   }
 
   /* 國數切換：印章紅的深淺 */
@@ -567,10 +567,10 @@ function renderResult() {
   if (missing.length) {
     const cols = SUBJECTS.map(s => [s.name, missing.filter(t => t.subject === s.name)]).filter(([, l]) => l.length);
     missingBox.innerHTML = `<div class="missing">
-      <div class="missing-head"><b>成績缺漏</b><span>共 ${missing.length} 項</span></div>
+      <div class="missing-head"><b>成績缺漏</b><span>共 ${missing.length} 項${missing.every(t => t.score === '未參與') ? '未參與' : ''}</span></div>
       <div class="missing-cols">${cols.map(([name, list]) => `<div class="missing-col">
-        <h4>${name}<small>${list.length} 項</small></h4>
-        <ul>${list.map(t => `<li><span>${escapeHTML(t.title)}${t.date ? `<em>${t.date}</em>` : ''}</span><i>${escapeHTML(t.score)}</i></li>`).join('')}</ul>
+        <h4><span></span>${name}<small>${list.length} 項</small></h4>
+        <ul>${list.map(t => `<li><span>${escapeHTML(t.title)}${t.date ? `<em>${t.date}</em>` : ''}</span>${t.score === '未參與' ? '' : `<i>${escapeHTML(t.score)}</i>`}</li>`).join('')}</ul>
       </div>`).join('')}</div></div>`;
   }
 
