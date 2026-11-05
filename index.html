@@ -541,9 +541,13 @@ function itemsOf(headers) {
 function cellOf(sheet, it) {
   const { score, avg: inCell } = splitCell(sheet.row[it.col]);
   // 平均列優先；沒有平均列時才用舊格式，再沒有就用全班自動平均
-  const fromRow = sheet.avgRow ? num(splitCell(sheet.avgRow[it.col]).score) : null;
-  const avg = fromRow ?? inCell ?? (it.avgCol !== null ? num(sheet.row[it.avgCol]) : null) ?? sheet.autoAvg[it.col] ?? null;
-  return { score, value: num(score), avg };
+  const rowRaw = sheet.avgRow ? splitCell(sheet.avgRow[it.col]).score : '';
+  const fromRow = num(rowRaw);
+  const colRaw = it.avgCol !== null ? String(sheet.row[it.avgCol] ?? '').trim() : '';
+  const avg = fromRow ?? inCell ?? num(colRaw) ?? sheet.autoAvg[it.col] ?? null;
+  // 老師親手填的平均（平均列／格內 /平均／班級平均欄）保留原字串，月考卡片照原樣顯示
+  const avgRaw = fromRow !== null ? rowRaw : inCell !== null ? String(inCell) : num(colRaw) !== null ? colRaw : null;
+  return { score, value: num(score), avg, avgRaw };
 }
 
 function studentRecords(sheet) {
@@ -585,7 +589,7 @@ function renderExam() {
             const c = list.find(e => e.subject === s);
             // 月考個人成績照試算表原樣顯示，不四捨五入；班級平均最多到小數第 2 位
             const me = !c || String(c.score).trim() === '' ? '—' : escapeHTML(String(c.score).trim());
-            return `<div class="et-row"><span class="et-s">${s}</span><span class="et-me">${me}</span><span class="et-cls">${c && c.avg !== null ? fmtExact(c.avg) : '—'}</span></div>`;
+            return `<div class="et-row"><span class="et-s">${s}</span><span class="et-me">${me}</span><span class="et-cls">${!c || c.avg === null ? '—' : c.avgRaw !== null ? escapeHTML(c.avgRaw) : fmtExact(c.avg)}</span></div>`;
           }).join('')}
         </div>
       </div>`;
