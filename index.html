@@ -587,9 +587,9 @@ function renderExam() {
           <div class="et-row et-head"><span></span><span>個人</span><span>班級</span></div>
           ${EXAM_SUBJECTS.map(([s]) => {
             const c = list.find(e => e.subject === s);
-            // 月考個人成績照試算表原樣顯示，不四捨五入；班級平均最多到小數第 2 位
+            // 月考個人成績照試算表原樣顯示，不四捨五入；班級平均（老師填的優先）四捨五入到整數
             const me = !c || String(c.score).trim() === '' ? '—' : escapeHTML(String(c.score).trim());
-            return `<div class="et-row"><span class="et-s">${s}</span><span class="et-me">${me}</span><span class="et-cls">${!c || c.avg === null ? '—' : c.avgRaw !== null ? escapeHTML(c.avgRaw) : fmtExact(c.avg)}</span></div>`;
+            return `<div class="et-row"><span class="et-s">${s}</span><span class="et-me">${me}</span><span class="et-cls">${!c || c.avg === null ? '—' : fmt(c.avg)}</span></div>`;
           }).join('')}
         </div>
       </div>`;
