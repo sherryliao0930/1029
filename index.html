@@ -665,7 +665,8 @@ function renderResult() {
     </div>
   </div>`;
 
-  const groupOrder = SUBJECTS.find(s => s.name === currentSubject).groups.map(g => g[0]);
+  // 小類顯示順序：名稱字數少的在前（朗讀、習作 → 四字 → 五字 → 六字），同字數照原本順序
+  const groupOrder = SUBJECTS.find(s => s.name === currentSubject).groups.map(g => g[0]).sort((a, b) => a.length - b.length);
   const groups = groupOrder.map(g => [g, mine.filter(r => r.group === g)]).filter(([, list]) => list.length);
 
   fitMissing();
