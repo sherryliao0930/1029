@@ -501,6 +501,7 @@ function prettyName(raw, subject) {
   const unit = subject === '數學' ? '單元' : '課';
   s = s.replace(/[（(]月考\+平時[)）]/, '').replace(/月考月考/, '月考')
        .replace(/國語|數學/g, '').replace(/(^|[^內])容深究/, '$1內容深究')
+       .replace(/^國?文字百寶箱\s*(?=\S)/, '') // 文字百寶箱小類裡只顯示章回名稱，如「讀音辨正」
        .replace(/^[國數](?=[\d習卷一二三四五六七八九十（(])/, '')
        .replace(/^[（(]?([一二三四五六七八九十]+)[)）]?/, (m, n) => CN_NUM.includes(n) ? String(CN_NUM.indexOf(n)) : m)
        .replace(/^(\d+)單元/, '$1')
