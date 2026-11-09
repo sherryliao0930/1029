@@ -122,6 +122,7 @@
   /* 能力雷達：孩子是紅色實心，班級平均只是一條淡灰虛線當參考 */
   /* 月考快訊：海狸直接坐在頁面上，右邊是五科成績表 */
   .exam{display:grid;grid-template-columns:40% 1fr;align-items:center;column-gap:6px;margin:20px 0 10px;padding:4px 2px 8px 0}
+  .exam-side h3 small{font-family:var(--sans);font-weight:700;font-size:14px;letter-spacing:.02em;margin-left:4px}
   .exam-side{display:flex;flex-direction:column;align-items:center;text-align:center}
   .exam-side h3{margin:0 0 4px;font-family:var(--serif);font-weight:900;font-size:18px;letter-spacing:.15em;color:var(--red);white-space:nowrap}
   .exam-mascot{display:block;width:112%;max-width:none;height:auto;margin:0 0 0 -4%;filter:drop-shadow(0 4px 5px rgba(90,50,20,.15))}
@@ -581,7 +582,7 @@ function renderExam() {
   // 依試算表出現順序，最新一次月考排最上面；最新那次的名稱寫在海狸上方
   const titles = [...new Set(currentExams.map(e => e.title))].reverse();
   return `<section class="exam">
-    <div class="exam-side"><h3>${escapeHTML(titles[0])}</h3><img class="exam-mascot" src="exam-mascot.webp" alt="月考快訊"></div>
+    <div class="exam-side"><h3>定期評量<small>50%</small></h3><img class="exam-mascot" src="exam-mascot.webp" alt="月考快訊"></div>
     <div class="exam-body">${titles.map((t, i) => {
       const list = currentExams.filter(e => e.title === t);
       return `<div class="exam-block">${i ? `<h4>${escapeHTML(t)}</h4>` : ''}
@@ -656,7 +657,7 @@ function renderResult() {
   const overview = `<div class="overview">
     <div class="ov-cell"><div class="k">已登錄</div><div class="v">${mine.filter(r => r.value !== null).length}<small>項</small></div></div>
     <div class="ov-group">
-      <div class="ov-cap">平時成績</div>
+      <div class="ov-cap">平時成績<small>50%</small></div>
       <div class="ov-pair">
         <div><div class="k">個人平均</div><div class="v red">${daily ? fmt(daily.me) : '—'}</div></div>
         <div><div class="k">班級平均</div><div class="v">${daily ? fmt(daily.cls) : '—'}</div></div>
@@ -686,7 +687,7 @@ function groupPair(list) {
 // 雷達圖的軸：小類 → 家長看得懂的能力名稱；數學另外加「穩定度」
 // 平時成績各小類佔比；孩子某一類還沒有分數時，其餘類別依比例重新分配。個人、班級用同樣的類別結算
 const DAILY_WEIGHTS = {
-  國語: { 內容深究: 30, 形音義與成語: 25, 習作: 20, 朗讀: 15, 閱讀理解: 10 },
+  國語: { 內容深究: 30, 習作: 20, 形音義與成語: 15, 文字百寶箱: 15, 朗讀: 10, 閱讀理解: 10 },
   數學: { 隨堂測驗: 40, 習作: 20, 線上測驗: 40 },
 };
 function weightedDaily(subject, mine) {
@@ -702,7 +703,7 @@ function weightedDaily(subject, mine) {
 }
 
 const RADAR_AXES = {
-  國語: [['朗讀', '朗讀表達'], ['形音義與成語', '字詞基礎'], ['內容深究', '課文理解'], ['閱讀理解', '閱讀素養'], ['習作', '課習演練'], ['線上測驗', '線上測驗']],
+  國語: [['朗讀', '朗讀表達'], [['形音義與成語', '文字百寶箱'], '字詞基礎'], ['內容深究', '課文理解'], ['閱讀理解', '閱讀素養'], ['習作', '課習演練'], ['線上測驗', '線上測驗']],
   數學: [['隨堂測驗', '課堂理解'], ['習作', '課習演練'], ['線上測驗', '綜合應用']],
 };
 const RADAR_MIN = 70; // 全班多在 80–100，中心從 70 起、每 5 分一圈，個人和班級的差距才看得出來
@@ -714,10 +715,15 @@ function stabilityOf(vals) {
 }
 
 function renderRadar(subject, mine) {
-  const axes = RADAR_AXES[subject].map(([group, label]) => {
-    const list = mine.filter(r => r.group === group);
-    return list.length ? { label, ...groupPair(list) } : null;
-  }).filter(a => a && a.me !== null);
+  // 一軸可合併多個小類（字詞基礎＝形音義與成語＋文字百寶箱），依平時成績比例加權
+  const axes = RADAR_AXES[subject].map(([groups, label]) => {
+    const parts = [].concat(groups).map(g => ({ w: DAILY_WEIGHTS[subject]?.[g] || 1, ...groupPair(mine.filter(r => r.group === g)) }));
+    const avgOf = key => {
+      const ok = parts.filter(p => p[key] !== null);
+      return ok.length ? ok.reduce((a, p) => a + p[key] * p.w, 0) / ok.reduce((a, p) => a + p.w, 0) : null;
+    };
+    return { label, me: avgOf('me'), cls: avgOf('cls') };
+  }).filter(a => a.me !== null);
   if (subject === '數學') {
     const me = stabilityOf(mine.filter(r => r.group !== '月考成績' && r.value !== null).map(r => r.value));
     if (me !== null) axes.push({ label: '穩定度', me, cls: currentClassStability });
