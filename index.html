@@ -177,13 +177,14 @@
   .g-num.cls b{font-weight:400;color:var(--ink-2)}
   .chev{width:8px;height:8px;border-right:1.5px solid var(--ink-2);border-bottom:1.5px solid var(--ink-2);transform:rotate(45deg) translateY(-3px);transition:transform .2s}
   /* 舊範圍收合列（小類內、成績缺漏內） */
-  details.old,details.old-miss{border-top:1px solid var(--red-line)}
+  /* 收合列用赭黃，避開滿版的紅色系 */
+  details.old,details.old-miss{border-top:1px solid #D2B67A}
   details.old{margin:0 -23px 0 -12px}
-  details.old>summary,details.old-miss>summary{list-style:none;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:8px;padding:11px 14px;font-size:14px;font-weight:700;color:var(--red);letter-spacing:.12em;background:#F3DDD8}
+  details.old>summary,details.old-miss>summary{list-style:none;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:8px;padding:11px 14px;font-size:14px;font-weight:700;color:#7A5512;letter-spacing:.12em;background:#F1E4C6}
   details.old>summary::-webkit-details-marker,details.old-miss>summary::-webkit-details-marker{display:none}
-  details.old>summary small,details.old-miss>summary small{font-size:12px;font-weight:400;color:var(--red);opacity:.75;letter-spacing:0}
-  details.old>summary .chev,details.old-miss>summary .chev{margin-left:4px;width:7px;height:7px;border-color:var(--red)}
-  details.old>summary:hover,details.old-miss>summary:hover{background:#EDCFC8}
+  details.old>summary small,details.old-miss>summary small{font-size:12px;font-weight:400;color:#8F6A2A;letter-spacing:0}
+  details.old>summary .chev,details.old-miss>summary .chev{margin-left:4px;width:7px;height:7px;border-color:#7A5512}
+  details.old>summary:hover,details.old-miss>summary:hover{background:#EBDAB3}
   details.old .row{opacity:.72;margin:0;padding-left:12px;padding-right:23px}
   details.old-miss .missing-cols{border-top:1px solid var(--line)}
   details.old-miss .missing-col li span{color:var(--ink-2)}
