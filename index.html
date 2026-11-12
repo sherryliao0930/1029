@@ -176,6 +176,20 @@
   .g-num b{font-family:var(--serif);font-weight:700;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
   .g-num.cls b{font-weight:400;color:var(--ink-2)}
   .chev{width:8px;height:8px;border-right:1.5px solid var(--ink-2);border-bottom:1.5px solid var(--ink-2);transform:rotate(45deg) translateY(-3px);transition:transform .2s}
+  /* 舊範圍收合列（小類內、成績缺漏內） */
+  details.old,details.old-miss{border-top:1px dashed var(--line)}
+  details.old{margin:0 -23px 0 -12px}
+  details.old>summary,details.old-miss>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 23px 10px 12px;font-size:13px;color:var(--ink-2);letter-spacing:.1em;background:#FBF6F2}
+  details.old-miss>summary{justify-content:center;padding:9px 14px}
+  details.old>summary::-webkit-details-marker,details.old-miss>summary::-webkit-details-marker{display:none}
+  details.old>summary small,details.old-miss>summary small{font-size:12px;color:var(--ink-3);letter-spacing:0}
+  details.old>summary .chev,details.old-miss>summary .chev{margin-left:auto;width:7px;height:7px}
+  details.old-miss>summary .chev{margin-left:4px}
+  details.old>summary:hover,details.old-miss>summary:hover{color:var(--red)}
+  details.old .row{opacity:.72;margin:0;padding-left:12px;padding-right:23px}
+  details.old-miss .missing-cols{border-top:1px solid var(--line)}
+  details.old-miss .missing-col li span{color:var(--ink-2)}
+  .row.none-yet .nm{color:var(--ink-3);font-size:13px}
   details[open]>summary .chev{transform:rotate(225deg) translate(-2px,-1px)}
 
   /* 展開的小表：成績、班級平均兩欄與上方小類標題的數字欄同寬 */
@@ -377,6 +391,10 @@ const config = {
   // Apps Script「部署為網頁應用程式」後得到的網址（結尾是 /exec）
   // 閱讀理解下方的班級自主閱讀圖；換新圖時覆蓋 reading-chart.png，並把 ?v= 後面的數字加 1
   readingChart: 'reading-chart.png?v=3',
+  // 這一段的起始日：此日（含）以後的成績直接列出；之前的、以及沒有日期的欄位收進「舊範圍」
+  // 下次要再分段時只改這兩行（平均、雷達圖照整學期計算，不受影響）
+  periodStart: '11/6',
+  oldLabel: '期中評量範圍',
   apiUrl: 'https://script.google.com/macros/s/AKfycbxJ7A83jHrcDUBj09NJH4TVicBrVAS4PLuNTTSuTEAic5J0d3kN72DMdBREEc-cdHcHng/exec',
 };
 
@@ -615,6 +633,9 @@ function escapeHTML(str) {
   return String(str ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
 }
 const fmt = n => Math.round(n).toString();
+// 有日期、且在 config.periodStart（含）之後才算「這一段」；沒日期的（朗讀1、國習1…）歸舊範圍
+const PERIOD_KEY = (() => { const [m, d] = config.periodStart.split('/').map(Number); return (m >= 8 ? m : m + 12) * 100 + d; })();
+const isCurrent = r => r.dateKey !== null && r.dateKey >= PERIOD_KEY;
 const fmtExact = n => String(+Number(n).toFixed(2));
 const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
 
@@ -633,15 +654,20 @@ function renderResult() {
     return;
   }
 
+  // 成績缺漏只列這一段（periodStart 以後）的；之前的收在下方「期中評量範圍」，點開才看得到
   const missing = records.filter(r => r.status === 'missing');
+  const newMiss = missing.filter(isCurrent), oldMiss = missing.filter(r => !isCurrent(r));
+  const missCols = list => `<div class="missing-cols">${SUBJECTS.map(s => [s.name, list.filter(t => t.subject === s.name)]).filter(([, l]) => l.length).map(([name, l]) => `<div class="missing-col">
+        <h4><span></span>${name}<small>${l.length} 項</small></h4>
+        <ul>${l.map(t => `<li><span>${escapeHTML(t.title)}${t.date ? `<em>${t.date}</em>` : ''}</span>${t.score === '未參與' ? '' : `<i>${escapeHTML(t.score)}</i>`}</li>`).join('')}</ul>
+      </div>`).join('')}</div>`;
   if (missing.length) {
-    const cols = SUBJECTS.map(s => [s.name, missing.filter(t => t.subject === s.name)]).filter(([, l]) => l.length);
     missingBox.innerHTML = `<div class="missing">
-      <div class="missing-head"><b>成績缺漏</b><span>共 ${missing.length} 項${missing.every(t => t.score === '未參與') ? '未參與' : ''}</span></div>
-      <div class="missing-cols">${cols.map(([name, list]) => `<div class="missing-col">
-        <h4><span></span>${name}<small>${list.length} 項</small></h4>
-        <ul>${list.map(t => `<li><span>${escapeHTML(t.title)}${t.date ? `<em>${t.date}</em>` : ''}</span>${t.score === '未參與' ? '' : `<i>${escapeHTML(t.score)}</i>`}</li>`).join('')}</ul>
-      </div>`).join('')}</div></div>`;
+      <div class="missing-head"><b>成績缺漏</b><span>${newMiss.length ? `共 ${newMiss.length} 項${newMiss.every(t => t.score === '未參與') ? '未參與' : ''}` : `${config.periodStart} 起沒有缺漏`}</span></div>
+      ${newMiss.length ? missCols(newMiss) : ''}
+      ${oldMiss.length ? `<details class="old-miss"><summary>${config.oldLabel}的缺漏<small>${oldMiss.length} 項</small><i class="chev"></i></summary>${missCols(oldMiss)}</details>` : ''}
+    </div>`;
+    missingBox.querySelectorAll('details').forEach(d => d.addEventListener('toggle', fitMissing));
   }
 
   const subjects = SUBJECTS.map(s => s.name).filter(n => records.some(r => r.subject === n));
@@ -763,6 +789,7 @@ function renderRadar(subject, mine) {
 function fitMissing() {
   missingBox.querySelectorAll('.missing-col li span').forEach(el => {
     el.style.fontSize = '';
+    if (!el.clientWidth) return; // 收合中的看不到，展開時再量
     let size = parseFloat(getComputedStyle(el).fontSize);
     // 量文字本身的寬度（含小數），比 scrollWidth 準，不會被四捨五入騙過
     const range = document.createRange();
@@ -784,6 +811,7 @@ function renderGroup(no, name, list) {
   const miss = list.filter(r => r.status === 'missing').length;
   const pct = DAILY_WEIGHTS[currentSubject]?.[name];
   const counts = currentCounts.filter(c => c.subject === currentSubject && c.group === name);
+  const recent = list.filter(isCurrent), old = list.filter(r => !isCurrent(r));
   const stat = cls !== null
     ? `<span class="g-num"><span>個人</span><b>${me !== null ? fmt(me) : '—'}</b></span><span class="g-num cls"><span>班級</span><b>${fmt(cls)}</b></span>`
     : '<span></span><span></span>';
@@ -795,7 +823,8 @@ function renderGroup(no, name, list) {
     </summary>
     <div class="sheet">
       <div class="colhead"><span>項目</span><span>成績</span><span>班級平均</span></div>
-      ${list.map(renderRow).join('')}
+      ${recent.length ? recent.map(renderRow).join('') : `<div class="row none-yet"><span class="nm">${config.periodStart} 起尚無新成績</span></div>`}
+      ${old.length ? `<details class="old"><summary>${config.oldLabel}<small>${old.length} 項</small><i class="chev"></i></summary>${old.map(renderRow).join('')}</details>` : ''}
       ${counts.length ? `<div class="cnt-cards">${counts.map(c => { const k = cardOf(c); return `<div class="cnt-card${/無效/.test(c.name) ? ' dim' : ''}">
         <span>${escapeHTML(k.label)}</span>
         <b>${escapeHTML(k.value)}${k.unit ? `<small>${k.unit}</small>` : ''}</b>
