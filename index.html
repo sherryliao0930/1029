@@ -818,7 +818,9 @@ function renderGroup(no, name, list) {
   const miss = list.filter(r => r.status === 'missing').length;
   const pct = DAILY_WEIGHTS[currentSubject]?.[name];
   const counts = currentCounts.filter(c => c.subject === currentSubject && c.group === name);
-  const recent = list.filter(isCurrent), old = list.filter(r => !isCurrent(r));
+  // 閱讀理解靠小卡與圖表呈現，不分段收合，全部直接列出
+  const noSplit = name === '閱讀理解';
+  const recent = noSplit ? list : list.filter(isCurrent), old = noSplit ? [] : list.filter(r => !isCurrent(r));
   const stat = cls !== null
     ? `<span class="g-num"><span>個人</span><b>${me !== null ? fmt(me) : '—'}</b></span><span class="g-num cls"><span>班級</span><b>${fmt(cls)}</b></span>`
     : '<span></span><span></span>';
