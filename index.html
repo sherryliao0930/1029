@@ -177,15 +177,13 @@
   .g-num.cls b{font-weight:400;color:var(--ink-2)}
   .chev{width:8px;height:8px;border-right:1.5px solid var(--ink-2);border-bottom:1.5px solid var(--ink-2);transform:rotate(45deg) translateY(-3px);transition:transform .2s}
   /* 舊範圍收合列（小類內、成績缺漏內） */
-  details.old,details.old-miss{border-top:1px dashed var(--line)}
+  details.old,details.old-miss{border-top:1px solid var(--red-line)}
   details.old{margin:0 -23px 0 -12px}
-  details.old>summary,details.old-miss>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 23px 10px 12px;font-size:13px;color:var(--ink-2);letter-spacing:.1em;background:#FBF6F2}
-  details.old-miss>summary{justify-content:center;padding:9px 14px}
+  details.old>summary,details.old-miss>summary{list-style:none;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:8px;padding:11px 14px;font-size:14px;font-weight:700;color:var(--red);letter-spacing:.12em;background:#F3DDD8}
   details.old>summary::-webkit-details-marker,details.old-miss>summary::-webkit-details-marker{display:none}
-  details.old>summary small,details.old-miss>summary small{font-size:12px;color:var(--ink-3);letter-spacing:0}
-  details.old>summary .chev,details.old-miss>summary .chev{margin-left:auto;width:7px;height:7px}
-  details.old-miss>summary .chev{margin-left:4px}
-  details.old>summary:hover,details.old-miss>summary:hover{color:var(--red)}
+  details.old>summary small,details.old-miss>summary small{font-size:12px;font-weight:400;color:var(--red);opacity:.75;letter-spacing:0}
+  details.old>summary .chev,details.old-miss>summary .chev{margin-left:4px;width:7px;height:7px;border-color:var(--red)}
+  details.old>summary:hover,details.old-miss>summary:hover{background:#EDCFC8}
   details.old .row{opacity:.72;margin:0;padding-left:12px;padding-right:23px}
   details.old-miss .missing-cols{border-top:1px solid var(--line)}
   details.old-miss .missing-col li span{color:var(--ink-2)}
@@ -394,7 +392,8 @@ const config = {
   // 這一段的起始日：此日（含）以後的成績直接列出；之前的、以及沒有日期的欄位收進「舊範圍」
   // 下次要再分段時只改這兩行（平均、雷達圖照整學期計算，不受影響）
   periodStart: '11/6',
-  oldLabel: '期中評量範圍',
+  oldLabel: '期中範圍平時成績',
+  oldMissLabel: '期中範圍缺漏',
   apiUrl: 'https://script.google.com/macros/s/AKfycbxJ7A83jHrcDUBj09NJH4TVicBrVAS4PLuNTTSuTEAic5J0d3kN72DMdBREEc-cdHcHng/exec',
 };
 
@@ -665,7 +664,7 @@ function renderResult() {
     missingBox.innerHTML = `<div class="missing">
       <div class="missing-head"><b>成績缺漏</b><span>${newMiss.length ? `共 ${newMiss.length} 項${newMiss.every(t => t.score === '未參與') ? '未參與' : ''}` : `${config.periodStart} 起沒有缺漏`}</span></div>
       ${newMiss.length ? missCols(newMiss) : ''}
-      ${oldMiss.length ? `<details class="old-miss"><summary>${config.oldLabel}的缺漏<small>${oldMiss.length} 項</small><i class="chev"></i></summary>${missCols(oldMiss)}</details>` : ''}
+      ${oldMiss.length ? `<details class="old-miss"><summary>${config.oldMissLabel}<small>${oldMiss.length} 項</small><i class="chev"></i></summary>${missCols(oldMiss)}</details>` : ''}
     </div>`;
     missingBox.querySelectorAll('details').forEach(d => d.addEventListener('toggle', fitMissing));
   }
