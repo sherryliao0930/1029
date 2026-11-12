@@ -177,15 +177,16 @@
   .g-num.cls b{font-weight:400;color:var(--ink-2)}
   .chev{width:8px;height:8px;border-right:1.5px solid var(--ink-2);border-bottom:1.5px solid var(--ink-2);transform:rotate(45deg) translateY(-3px);transition:transform .2s}
   /* 舊範圍收合列（小類內、成績缺漏內） */
-  /* 收合列：置中的寬膠囊按鈕（淡胭脂底、紅字），不整條塗滿 */
+  /* 收合列：書頁分隔線（紅字置中、左右細紅線） */
   details.old,details.old-miss{border-top:1px solid var(--line-2)}
   details.old{margin:0 -23px 0 -12px}
-  details.old>summary,details.old-miss>summary{list-style:none;cursor:pointer;display:flex;justify-content:center;padding:12px 14px}
+  details.old>summary,details.old-miss>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:14px 16px}
+  details.old>summary::before,details.old>summary::after,details.old-miss>summary::before,details.old-miss>summary::after{content:"";flex:1;border-top:1px solid var(--red-line)}
   details.old>summary::-webkit-details-marker,details.old-miss>summary::-webkit-details-marker{display:none}
-  details.old .pill,details.old-miss .pill{display:inline-flex;justify-content:center;align-items:center;gap:8px;min-width:70%;padding:8px 24px;border:1px solid var(--red-line);border-radius:999px;background:#F3DDD8;color:var(--red);font-size:14px;font-weight:700;letter-spacing:.12em;white-space:nowrap;transition:background .15s}
+  details.old .pill,details.old-miss .pill{display:inline-flex;align-items:center;gap:7px;color:var(--red);font-size:14px;font-weight:700;letter-spacing:.12em;white-space:nowrap}
   details.old .pill small,details.old-miss .pill small{font-size:12px;font-weight:400;color:var(--red);opacity:.75;letter-spacing:0}
   details.old .pill .chev,details.old-miss .pill .chev{margin-left:2px;width:7px;height:7px;border-color:var(--red)}
-  details.old>summary:hover .pill,details.old-miss>summary:hover .pill{background:#EDCFC8}
+  details.old>summary:hover .pill,details.old-miss>summary:hover .pill{color:var(--ink)}
   details.old .row{opacity:.72;margin:0;padding-left:12px;padding-right:23px}
   details.old-miss .missing-cols{border-top:1px solid var(--line)}
   details.old-miss .missing-col li span{color:var(--ink-2)}
