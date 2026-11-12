@@ -164,14 +164,13 @@
   /* 小類：編號｜名稱｜個人｜班級｜箭頭，數字欄固定寬度才對得齊 */
   details.grp{border-bottom:1px solid var(--line)}
   details.grp:first-of-type{border-top:2px solid var(--ink);margin-top:16px}
-  details.grp>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:24px minmax(0,1fr) 46px var(--num-col) var(--num-col) 12px;align-items:center;column-gap:10px;padding:13px 2px}
-  .g-miss-col{display:flex;justify-content:flex-start}
+  details.grp>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:24px 1fr var(--num-col) var(--num-col) 12px;align-items:center;column-gap:10px;padding:13px 2px}
   details.grp>summary::-webkit-details-marker{display:none}
   details.grp>summary:hover .g-name{color:var(--red)}
   .g-no{font-family:var(--serif);font-weight:900;font-size:18px;color:var(--red);text-align:center;line-height:1}
   .g-name{font-family:var(--serif);font-weight:700;font-size:17px;letter-spacing:.1em;line-height:1.3;white-space:nowrap;transition:color .15s}
   .g-name small{display:block;font-family:var(--sans);font-weight:400;font-size:11px;color:var(--ink-3);letter-spacing:.05em;margin-top:2px}
-  .g-miss{display:inline-block;white-space:nowrap;padding:0 5px;border:1px solid var(--red);border-radius:2px;font-family:var(--sans);font-weight:500;font-size:11px;line-height:1.5;letter-spacing:.05em;color:var(--red)}
+  .g-miss{display:inline-block;vertical-align:3px;margin-left:8px;padding:0 5px;border:1px solid var(--red);border-radius:2px;font-family:var(--sans);font-weight:500;font-size:11px;line-height:1.5;letter-spacing:.05em;color:var(--red)}
   .g-num{display:flex;justify-content:space-between;align-items:baseline;white-space:nowrap}
   .g-num span{font-size:11px;color:var(--red);letter-spacing:.1em}
   .g-num b{font-family:var(--serif);font-weight:700;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -225,10 +224,6 @@
   @media (max-width:420px){
     :root{--num-col:58px}
     .g-name{letter-spacing:.05em}
-    details.grp>summary{grid-template-columns:20px minmax(0,1fr) 44px var(--num-col) var(--num-col) 10px;column-gap:6px}
-  }
-  @media (max-width:370px){
-    .g-name{font-size:16px;letter-spacing:.02em}
   }
 
   /* 後台 */
@@ -827,8 +822,7 @@ function renderGroup(no, name, list) {
   return `<details class="grp">
     <summary>
       <span class="g-no">${no}</span>
-      <span class="g-name">${escapeHTML(name)}<small>${list.length} 項${pct ? `‧${pct}%` : ''}</small></span>
-      <span class="g-miss-col">${miss ? `<span class="g-miss">缺漏 ${miss}</span>` : ''}</span>
+      <span class="g-name">${escapeHTML(name)}${miss ? `<span class="g-miss">缺漏 ${miss}</span>` : ''}<small>${list.length} 項${pct ? `‧${pct}%` : ''}</small></span>
       ${stat}<i class="chev"></i>
     </summary>
     <div class="sheet">
