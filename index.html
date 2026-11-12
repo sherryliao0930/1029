@@ -177,14 +177,15 @@
   .g-num.cls b{font-weight:400;color:var(--ink-2)}
   .chev{width:8px;height:8px;border-right:1.5px solid var(--ink-2);border-bottom:1.5px solid var(--ink-2);transform:rotate(45deg) translateY(-3px);transition:transform .2s}
   /* 舊範圍收合列（小類內、成績缺漏內） */
-  /* 收合列用赭黃，避開滿版的紅色系 */
-  details.old,details.old-miss{border-top:1px solid #D2B67A}
+  /* 收合列：置中的赭色細框小膠囊按鈕，避開滿版紅色系、也不整條塗滿 */
+  details.old,details.old-miss{border-top:1px solid var(--line-2)}
   details.old{margin:0 -23px 0 -12px}
-  details.old>summary,details.old-miss>summary{list-style:none;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:8px;padding:11px 14px;font-size:14px;font-weight:700;color:#7A5512;letter-spacing:.12em;background:#F1E4C6}
+  details.old>summary,details.old-miss>summary{list-style:none;cursor:pointer;display:flex;justify-content:center;padding:12px 14px}
   details.old>summary::-webkit-details-marker,details.old-miss>summary::-webkit-details-marker{display:none}
-  details.old>summary small,details.old-miss>summary small{font-size:12px;font-weight:400;color:#8F6A2A;letter-spacing:0}
-  details.old>summary .chev,details.old-miss>summary .chev{margin-left:4px;width:7px;height:7px;border-color:#7A5512}
-  details.old>summary:hover,details.old-miss>summary:hover{background:#EBDAB3}
+  details.old .pill,details.old-miss .pill{display:inline-flex;align-items:center;gap:7px;padding:6px 16px;border:1px solid #C9A65E;border-radius:999px;background:#FBF5E8;color:#7A5512;font-size:13px;font-weight:700;letter-spacing:.1em;white-space:nowrap;transition:background .15s}
+  details.old .pill small,details.old-miss .pill small{font-size:12px;font-weight:400;color:#8F6A2A;letter-spacing:0}
+  details.old .pill .chev,details.old-miss .pill .chev{margin-left:2px;width:6px;height:6px;border-color:#7A5512}
+  details.old>summary:hover .pill,details.old-miss>summary:hover .pill{background:#F3E6C8}
   details.old .row{opacity:.72;margin:0;padding-left:12px;padding-right:23px}
   details.old-miss .missing-cols{border-top:1px solid var(--line)}
   details.old-miss .missing-col li span{color:var(--ink-2)}
@@ -665,7 +666,7 @@ function renderResult() {
     missingBox.innerHTML = `<div class="missing">
       <div class="missing-head"><b>成績缺漏</b><span>${newMiss.length ? `共 ${newMiss.length} 項${newMiss.every(t => t.score === '未參與') ? '未參與' : ''}` : `${config.periodStart} 起沒有缺漏`}</span></div>
       ${newMiss.length ? missCols(newMiss) : ''}
-      ${oldMiss.length ? `<details class="old-miss"><summary>${config.oldMissLabel}<small>${oldMiss.length} 項</small><i class="chev"></i></summary>${missCols(oldMiss)}</details>` : ''}
+      ${oldMiss.length ? `<details class="old-miss"><summary><span class="pill">${config.oldMissLabel}<small>${oldMiss.length} 項</small><i class="chev"></i></span></summary>${missCols(oldMiss)}</details>` : ''}
     </div>`;
     missingBox.querySelectorAll('details').forEach(d => d.addEventListener('toggle', fitMissing));
   }
@@ -824,7 +825,7 @@ function renderGroup(no, name, list) {
     <div class="sheet">
       <div class="colhead"><span>項目</span><span>成績</span><span>班級平均</span></div>
       ${recent.length ? recent.map(renderRow).join('') : `<div class="row none-yet"><span class="nm">${config.periodStart} 起尚無新成績</span></div>`}
-      ${old.length ? `<details class="old"><summary>${config.oldLabel}<small>${old.length} 項</small><i class="chev"></i></summary>${old.map(renderRow).join('')}</details>` : ''}
+      ${old.length ? `<details class="old"><summary><span class="pill">${config.oldLabel}<small>${old.length} 項</small><i class="chev"></i></span></summary>${old.map(renderRow).join('')}</details>` : ''}
       ${counts.length ? `<div class="cnt-cards">${counts.map(c => { const k = cardOf(c); return `<div class="cnt-card${/無效/.test(c.name) ? ' dim' : ''}">
         <span>${escapeHTML(k.label)}</span>
         <b>${escapeHTML(k.value)}${k.unit ? `<small>${k.unit}</small>` : ''}</b>
